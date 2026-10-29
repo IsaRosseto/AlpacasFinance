@@ -432,14 +432,18 @@ textarea{min-height:100px}
 .msg.b ul,.msg.b ol{margin:6px 0 8px;padding-left:20px}
 .msg.b li{margin:7px 0}
 .msg .linkbtn{display:inline}
-.acts2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.chatfoot{border-top:1px solid var(--rule);padding:12px 18px 14px;background:var(--surface-2)}
-.chips2{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px}
-.chips2 button{flex:none;border:1px solid var(--rule-strong);background:var(--surface);border-radius:10px;padding:7px 12px;font-size:14px;font-weight:500}
-.chips2 button:hover{border-color:var(--brand);background:var(--hover)}
-#chatForm{display:flex;gap:8px}
-#chatForm .txt{flex:1}
-.chatnote{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.acts2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pick{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.pick select{flex:1 1 220px;min-width:0;height:36px;border:1px solid var(--rule-strong);border-radius:8px;background:var(--surface);padding:0 8px}
+.chatfoot{border-top:1px solid var(--rule);background:var(--surface-2);display:flex;flex-direction:column;max-height:46%;min-height:0}
+.catbar{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px 8px}
+.catb{border:1px solid var(--rule-strong);background:var(--surface);border-radius:8px;padding:5px 11px;font-size:14px;font-weight:500}
+.catb:hover{border-color:var(--brand);background:var(--hover)}
+.catb.on{background:var(--rail);border-color:var(--rail);color:#fff;font-weight:600}
+.qlist{overflow:auto;display:grid;gap:6px;padding:4px 16px 14px}
+.qb{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:1px solid var(--rule);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:14.5px;font-weight:500}
+.qb:hover{border-color:var(--brand);background:var(--hover)}
+.qb em{flex:none;font-style:normal;font-size:12.5px;font-weight:600;color:var(--brand-ink);background:var(--brand-tint);padding:1px 8px;border-radius:6px}
 @media (max-width:820px){.fab span:not(.av){display:none}.fab{padding:0 12px 0 12px}}
 
 @media (max-width:1100px){
@@ -1236,7 +1240,7 @@ function tabJornada(r){
   let h="";
   if(r.rej){
     const pb=PLAYBOOK.find(p=>p.id===r.rej.pb);
-    h+=`<div class="callout bad" role="alert"><h4>Recusada por ${esc(r.rej.byName)}, ${esc(r.rej.byRole)}</h4><p><b>Motivo:</b> ${esc(r.rej.motivo)}</p><p><b>O que fazer:</b> ${esc(r.rej.acao)}</p><p>${pb?`<button class="linkbtn" type="button" data-guide="${pb.id}">Ver o passo a passo completo</button>`:""} <button class="btn sec sm" type="button" data-chat="Por que a ${r.rc} foi recusada?">Perguntar ao assistente</button></p></div>`;
+    h+=`<div class="callout bad" role="alert"><h4>Recusada por ${esc(r.rej.byName)}, ${esc(r.rej.byRole)}</h4><p><b>Motivo:</b> ${esc(r.rej.motivo)}</p><p><b>O que fazer:</b> ${esc(r.rej.acao)}</p><p>${pb?`<button class="linkbtn" type="button" data-guide="${pb.id}">Ver o passo a passo completo</button>`:""} <button class="btn sec sm" type="button" data-chat="rej|${r.rc}">Perguntar ao assistente</button></p></div>`;
   }else if(done){
     h+=`<div class="callout ok"><h4>Pagamento confirmado no SAP</h4><p>Pago em ${dstr(-r.fc,true)}. A confirmação vem direto do SAP, sem depender de aviso informal.</p></div>`;
   }else{
@@ -1338,50 +1342,25 @@ function copyText(t,ta){
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast("Mensagem copiada.")).catch(fb);else fb();
 }
 
-/* =============== Assistente local (regras próprias, sem IA externa) =============== */
-const CHAT={msgs:[],ctx:{rc:null,sup:null},typing:false};
-const DEFAULT_CHIPS=["O que está atrasado e por quê?","Quanto vou pagar nas próximas duas semanas?","Quais fornecedores precisam de atenção?","Resuma a minha semana.","Qual o status da RC-204817?","O que significa alçada?"];
-const SUP_STOP=new Set(["ltda","industrial","industriais","solucoes","servicos","consultoria","pecas","instituto","agencia","construtora","software","criativa"]);
-const supTok=n=>norm(n).replace(/[.,]/g," ").split(/\s+/).filter(w=>w.length>=3&&!SUP_STOP.has(w));
-const PEOPLE=uniq(REQS.flatMap(r=>[r.owner.name].concat(r.ap.map(a=>a.name),r.rej?[r.rej.byName]:[]))).filter(n=>!SUP[n]);
-const lc=s=>s?s.charAt(0).toLowerCase()+s.slice(1):s;
+/* =============== Assistente por menu (perguntas prontas, sem IA externa) =============== */
+const CHAT={msgs:[],cat:"geral",pickN:0,typing:false};
 const B=rc=>`<button class="linkbtn" type="button" data-open="${rc}">${rc}</button>`;
-const mk=(h,chips)=>({h,chips:chips||DEFAULT_CHIPS});
-const LB=sc=>sc.lbl?" "+sc.lbl:"";
-const shortSup=n=>n.replace(/\s+(Ltda|S\.A\.)$/,"");
+const mk=h=>({h});
 const goBtn=(label,attr)=>`<div class="acts2"><button class="btn sec sm" type="button" ${attr}>${esc(label)}</button></div>`;
 const srcLine=r=>`<p class="mut" style="font-size:13.5px">Fonte: ${STAGES[r.stage].sys}, atualizado ${ago(r.upd)}.</p>`;
-const RC_CHIPS=skip=>["Quem está com ela?","Quando será paga?","Quais documentos ela tem?","Por que foi recusada?","O que preciso fazer?"].filter(c=>c!==skip).slice(0,4);
-function rl(arr,line,max){max=max||6;return `<ul>`+arr.slice(0,max).map(r=>`<li>${B(r.rc)} ${esc(r.desc)}<br><span class="mut">${line(r)}</span></li>`).join("")+`</ul>`+(arr.length>max?`<p class="mut">E mais ${arr.length-max}.</p>`:"")}
-
-function ents(q){
-  const n=norm(q),e={};
-  let m=n.match(/rc[-\s]?(\d{6})/);
-  if(m){if(byRc("RC-"+m[1]))e.rc="RC-"+m[1];else e.missing="RC-"+m[1]}
-  if(!e.rc&&!e.missing){m=n.match(/\b(\d{6})\b/);if(m&&byRc("RC-"+m[1]))e.rc="RC-"+m[1]}
-  if(!e.rc){
-    m=n.match(/\b(\d{3,10})\b/);
-    if(m){const r=REQS.find(x=>x.nf===m[1]||x.po===m[1]||x.sap===m[1]);if(r){e.rc=r.rc;e.via=m[1]}else if(/\b(nf|nota|po|pedido|folha)\b/.test(n))e.missing="o número "+m[1]}
-  }
-  const words=n.replace(/[^a-z0-9\s]/g," ").split(/\s+/);
-  let best=0,cands=[];
-  Object.keys(SUP).forEach(s=>{const sc=supTok(s).filter(t=>words.includes(t)).length;if(sc>best){best=sc;cands=[s]}else if(sc===best&&sc>0)cands.push(s)});
-  if(cands.length===1)e.sup=cands[0];else if(cands.length>1)e.supAmb=cands;
-  const p=PEOPLE.find(x=>words.includes(norm(x.split(" ")[0])));if(p)e.person=p;
-  return e;
+const lc=s=>s?s.charAt(0).toLowerCase()+s.slice(1):s;
+const sumV=a=>a.reduce((t,r)=>t+r.val,0);
+const ALL={f:()=>true,lbl:""};
+function rl(arr,line,max){max=max||8;return `<ul>`+arr.slice(0,max).map(r=>`<li>${B(r.rc)} ${esc(r.desc)}<br><span class="mut">${line(r)}</span></li>`).join("")+`</ul>`+(arr.length>max?`<p class="mut">E mais ${arr.length-max}.</p>`:"")}
+const REL=[["status","Status"],["who","Quem está com ela"],["pay","Pagamento"],["docs","Documentos"],["next","Próximo passo"],["rej","Motivo da recusa"]];
+function relRC(r,skip){
+  const bs=REL.filter(x=>x[0]!==skip&&(x[0]!=="rej"||r.rej)).sort((a,b)=>(b[0]==="rej")-(a[0]==="rej")).slice(0,3);
+  return `<div class="acts2"><button class="btn sec sm" type="button" data-open="${r.rc}">Abrir a jornada</button>`+bs.map(x=>`<button class="btn sec sm" type="button" data-qa="${x[0]}|${r.rc}">${x[1]}</button>`).join("")+`</div>`;
 }
-const stageFrom=n=>/requisic/.test(n)?0:/aprovacao|contratac/.test(n)?1:/recebimento/.test(n)?2:/processamento/.test(n)?3:/etapa de pagamento|em pagamento/.test(n)?4:null;
-const statusFrom=n=>/recusad/.test(n)?"Recusada":/concluid|paga\b|pagas\b|finalizad/.test(n)?"Concluída":/pendente/.test(n)?"Pendente":/andamento/.test(n)?"Em andamento":null;
-function glossFind(n){
-  const w=n.split(" ");
-  return GLOSS.find(g=>{const t=norm(g[0]);return t.includes(" ")?n.includes(t):w.includes(t)});
-}
-const ROUTE_WORDS={"visao-geral":["visao geral","inicio","pagina inicial"],pendencias:["pendencia"],solicitacoes:["solicitac"],aprovacoes:["aprovac"],pagamentos:["pagamentos"],documentos:["documentos"],agenda:["agenda","calendario"],fornecedores:["fornecedores"],indicadores:["indicador","grafico"],atividade:["atividade"],recusas:["guia","glossario","recusas"]};
-const routeFind=n=>Object.keys(ROUTE_WORDS).find(k=>ROUTE_WORDS[k].some(w=>n.includes(w)));
 
-/* ----- respostas sobre uma solicitação ----- */
+/* ----- respostas sobre UMA solicitação ----- */
 function aStatus(r){
-  CHAT.ctx.rc=r.rc;CHAT.ctx.sup=r.sup;const e=eta(r);
+  const e=eta(r);
   let h=`<p>${B(r.rc)}, <b>${esc(r.desc)}</b>. Fornecedor: ${esc(r.sup)}. Valor: ${money(r.val)}.</p>`;
   if(!active(r))h+=`<p>Está <b>concluída</b>. ${esc(e.text)}.</p>`;
   else{
@@ -1389,238 +1368,341 @@ function aStatus(r){
     h+=r.rej?`<p><b>Recusada:</b> ${esc(r.rej.motivo)}</p>`:`<p>${esc(r.next)}</p>`;
     h+=`<p>Pagamento: ${e.kind==="est"?"estimado ":""}${lc(e.text)} (${lc(e.conf)}).</p>`;
   }
-  h+=srcLine(r)+goBtn("Abrir a jornada completa",`data-open="${r.rc}"`);
-  return mk(h,RC_CHIPS());
+  return mk(h+srcLine(r)+relRC(r,"status"));
 }
 function aWho(r){
-  CHAT.ctx.rc=r.rc;CHAT.ctx.sup=r.sup;
-  if(!active(r))return mk(`<p>${B(r.rc)} já foi concluída. O pagamento foi confirmado no SAP.</p>`,RC_CHIPS("Quem está com ela?"));
+  if(!active(r))return mk(`<p>${B(r.rc)} já foi concluída. O pagamento foi confirmado no SAP.</p>`+relRC(r,"who"));
   let h=`<p>${B(r.rc)} está com <b>${esc(r.owner.name)}</b> (${esc(r.owner.role)}), há ${days(r.inStage)} na etapa <b>${STAGES[r.stage].name}</b>.</p>`;
   if(r.stage===1&&r.ap.length)h+=`<p>Cadeia de aprovação:</p><ul>`+r.ap.map(a=>`<li>${esc(a.name)} (${esc(a.role)}): ${({ok:"aprovou",wait:"aguardando",rej:"recusou",todo:"em seguida"})[a.state]}</li>`).join("")+`</ul>`;
-  return mk(h+`<p>${esc(r.next)}</p>`+srcLine(r),RC_CHIPS("Quem está com ela?"));
+  return mk(h+`<p>${esc(r.next)}</p>`+srcLine(r)+relRC(r,"who"));
 }
 function aPay(r){
-  CHAT.ctx.rc=r.rc;CHAT.ctx.sup=r.sup;const e=eta(r);let h;
+  const e=eta(r);let h;
   if(!active(r))h=`<p>${B(r.rc)} já foi paga. ${esc(e.text)}, no valor de ${money(r.val)}.</p>`;
   else if(e.kind==="sap")h=`<p>${B(r.rc)} tem pagamento programado no SAP: <b>${lc(e.text)}</b> (${money(r.val)}).</p>`;
   else h=`<p>${B(r.rc)} ainda não tem data no SAP. A estimativa é <b>${lc(e.text)}</b>, com ${lc(e.conf)}.</p><p class="mut">A estimativa soma o tempo típico das etapas que faltam e melhora quando o Financeiro programa o pagamento.</p>`;
   if(r.rej)h+=`<p>Atenção: a solicitação está recusada, então essa data só vale depois da correção.</p>`;
-  return mk(h,RC_CHIPS("Quando será paga?"));
+  return mk(h+relRC(r,"pay"));
 }
 function aReject(r){
-  CHAT.ctx.rc=r.rc;CHAT.ctx.sup=r.sup;
-  if(!r.rej)return mk(`<p>${B(r.rc)} não está recusada. Situação atual: <b>${r.status}</b>, na etapa ${STAGES[r.stage].name}.</p>`,RC_CHIPS("Por que foi recusada?"));
+  if(!r.rej)return mk(`<p>${B(r.rc)} não está recusada. Situação atual: <b>${r.status}</b>, na etapa ${STAGES[r.stage].name}.</p>`+relRC(r,"rej"));
   const pb=PLAYBOOK.find(p=>p.id===r.rej.pb);
   let h=`<p>${B(r.rc)} foi recusada por <b>${esc(r.rej.byName)}</b> (${esc(r.rej.byRole)}).</p><p><b>Motivo:</b> ${esc(r.rej.motivo)}</p><p><b>O que fazer:</b> ${esc(r.rej.acao)}</p>`;
   if(pb)h+=`<p>Passo a passo:</p><ol>${pb.passos.map(x=>`<li>${esc(x)}</li>`).join("")}</ol><p class="mut">Prazo típico: ${pb.prazo}.</p>`;
-  return mk(h,RC_CHIPS("Por que foi recusada?"));
+  return mk(h+relRC(r,"rej"));
 }
 function aNext(r){
-  CHAT.ctx.rc=r.rc;CHAT.ctx.sup=r.sup;
-  if(!active(r))return mk(`<p>${B(r.rc)} está concluída. Não há nada a fazer.</p>`,RC_CHIPS("O que preciso fazer?"));
+  if(!active(r))return mk(`<p>${B(r.rc)} está concluída. Não há nada a fazer.</p>`+relRC(r,"next"));
   const t=tasksOf().filter(x=>x.rc===r.rc);
   let h=`<p>Sobre ${B(r.rc)}: ${esc(r.next)}</p>`;
-  if(t.length)h+=`<p>Para você, o próximo passo é <b>${lc(esc(t[0].title))}</b>. ${esc(t[0].text)}</p>`;
-  else h+=`<p>Não há nenhuma ação pendente para você nesta solicitação agora.</p>`;
-  return mk(h,RC_CHIPS("O que preciso fazer?"));
+  h+=t.length?`<p>Para você, o próximo passo é <b>${lc(esc(t[0].title))}</b>. ${esc(t[0].text)}</p>`:`<p>Não há nenhuma ação pendente para você nesta solicitação agora.</p>`;
+  return mk(h+relRC(r,"next"));
 }
 function aDocs(r){
-  CHAT.ctx.rc=r.rc;CHAT.ctx.sup=r.sup;
   const d=docsFor(r.rc),m=missingDocs().filter(x=>x.rc===r.rc);
   let h=`<p>${B(r.rc)} tem ${pl(d.length,"documento","documentos")}:</p><ul>`+d.map(x=>`<li>${esc(x.type)}, ${esc(x.ref)} <span class="mut">(${esc(x.origin)})</span></li>`).join("")+`</ul>`;
   if(m.length)h+=`<p><b>Falta anexar:</b> ${m.map(x=>esc(x.doc)+" no "+esc(x.onde)).join("; ")}.</p>`;
-  return mk(h,RC_CHIPS("Quais documentos ela tem?"));
+  return mk(h+relRC(r,"docs"));
 }
 
-/* ----- respostas gerais ----- */
-function aStuck(sc){
-  const L=REQS.filter(r=>active(r)&&r.inStage>=7&&sc.f(r)).sort((a,b)=>b.inStage-a.inStage);
-  if(!L.length)return mk(`<p>Nenhuma solicitação${LB(sc)} está parada há 7 dias ou mais.</p>`);
-  return mk(`<p>${pl(L.length,"solicitação está parada","solicitações estão paradas")} há 7 dias ou mais${LB(sc)}:</p>`+rl(L,r=>`Há ${days(r.inStage)} em ${STAGES[r.stage].name}, com ${esc(r.owner.name)}. ${esc(r.next)}`)+goBtn("Ver todas as paradas",'data-gov="sol:paradas"'));
-}
-function aRejected(sc){
-  const L=REQS.filter(r=>r.rej&&sc.f(r));
-  if(!L.length)return mk(`<p>Nenhuma solicitação${LB(sc)} está recusada.</p>`);
-  return mk(`<p>${pl(L.length,"solicitação recusada","solicitações recusadas")}${LB(sc)}, somando ${money(L.reduce((a,r)=>a+r.val,0))}:</p>`+rl(L,r=>esc(r.rej.motivo))+goBtn("Ver como corrigir",'data-go="recusas" data-close'),["Por que a RC-204412 foi recusada?","Como corrigir NF sem PO?"]);
+/* ----- visão geral ----- */
+function aSummary(){
+  const at=REQS.filter(active),rj=REQS.filter(r=>r.rej),st=at.filter(r=>r.inStage>=7),t=openTasks(),w=at.filter(r=>r.fc!=null&&r.fc>=0&&r.fc<=7),rd=radar()[0];
+  return mk(`<p>Hoje o Hub mostra <b>${pl(at.length,"solicitação em andamento","solicitações em andamento")}</b>, somando ${money(sumV(at))}.</p><ul><li>${pl(rj.length,"recusada para corrigir","recusadas para corrigir")} (${money(sumV(rj))})</li><li>${pl(st.length,"parada há 7 dias ou mais","paradas há 7 dias ou mais")}</li><li>${pl(t.length,"pendência sua aberta","pendências suas abertas")}</li><li>${money(sumV(w))} a pagar nos próximos 7 dias, em ${pl(w.length,"pagamento","pagamentos")}</li></ul>`+(rd?`<p>Ponto principal do radar: <b>${esc(rd.t)}</b>.</p>`:""));
 }
 function aTasks(){
   const t=openTasks();
   if(!t.length)return mk(`<p>Você não tem pendências abertas. Tudo em dia.</p>`);
-  return mk(`<p>Você tem ${pl(t.length,"pendência aberta","pendências abertas")}, da mais urgente para a menos:</p><ul>`+t.slice(0,6).map(x=>`<li><b>${esc(x.title)}</b>, ${B(x.rc)} ${esc(byRc(x.rc).desc)}<br><span class="mut">${esc(x.text)}</span></li>`).join("")+`</ul>`+goBtn("Abrir minhas pendências",'data-go="pendencias" data-close'));
-}
-function aApprovals(sc){
-  const L=aprBase().filter(x=>x.sit==="Aguardando aprovação"&&sc.f(x)).sort((a,b)=>b.inStage-a.inStage);
-  if(!L.length)return mk(`<p>Nenhuma aprovação${LB(sc)} está aguardando agora.</p>`);
-  return mk(`<p>${pl(L.length,"aprovação aguardando","aprovações aguardando")}${LB(sc)}:</p>`+rl(L,r=>`Com ${esc(r.who)} (${esc(r.role)}) há ${days(r.inStage)}. ${money(r.val)}.`)+goBtn("Abrir aprovações",'data-gov="apr:aguardando"'));
-}
-function payWin(n){
-  if(/amanha/.test(n))return{lo:1,hi:1,l:"amanhã"};
-  if(/\bhoje\b/.test(n))return{lo:0,hi:0,l:"hoje"};
-  if(/(proxima|que vem) semana|semana que vem/.test(n))return{lo:7,hi:13,l:"na semana que vem"};
-  if(/duas semanas|quinzena|14 dias|15 dias/.test(n))return{lo:0,hi:14,l:"nos próximos 14 dias"};
-  if(/\bmes\b|30 dias/.test(n))return{lo:0,hi:30,l:"nos próximos 30 dias"};
-  if(/semana|7 dias/.test(n))return{lo:0,hi:7,l:"nos próximos 7 dias"};
-  return{lo:0,hi:14,l:"nos próximos 14 dias"};
-}
-function semData(sc){
-  const L=REQS.filter(r=>active(r)&&r.fc==null&&r.stage>=1&&sc.f(r));
-  if(!L.length)return "";
-  return `<p>Mas ${pl(L.length,"solicitação ainda não tem","solicitações ainda não têm")} data no SAP. Veja a estimativa:</p>`+rl(L,r=>"Pagamento estimado "+lc(eta(r).text)+" ("+lc(eta(r).conf)+")",4);
-}
-function aPayments(sc,n){
-  const w=payWin(n),L=REQS.filter(r=>active(r)&&r.fc!=null&&r.fc>=w.lo&&r.fc<=w.hi&&sc.f(r)).sort((a,b)=>a.fc-b.fc);
-  if(!L.length)return mk(`<p>Não há pagamentos programados no SAP ${w.l}${LB(sc)}.</p>`+semData(sc),["Resuma a minha semana.","Quais pendências eu tenho?"]);
-  return mk(`<p>${pl(L.length,"pagamento programado","pagamentos programados")} ${w.l}${LB(sc)}, num total de <b>${money(L.reduce((a,r)=>a+r.val,0))}</b>:</p><ul>`+L.slice(0,8).map(r=>`<li><b>${payDate(r).toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})}</b>, ${esc(r.sup)}, ${money(r.val)} (${B(r.rc)})</li>`).join("")+`</ul>`+(L.length>8?`<p class="mut">E mais ${L.length-8}.</p>`:"")+`<p class="mut" style="font-size:13.5px">Fonte: previsão do SAP.</p>`+goBtn("Abrir a agenda",'data-go="agenda" data-close'));
-}
-function aNumbers(sc,n){
-  const st=stageFrom(n),stt=statusFrom(n);let lbl=sc.lbl,L;
-  if(stt==="Concluída")L=REQS.filter(r=>!active(r)&&sc.f(r));
-  else if(stt==="Recusada"||stt==="Pendente"){L=REQS.filter(r=>r.status===stt&&sc.f(r))}
-  else L=REQS.filter(r=>active(r)&&sc.f(r));
-  if(stt)lbl=`${stt==="Concluída"?"concluídas":stt==="Recusada"?"recusadas":stt==="Pendente"?"pendentes":""} ${lbl}`.trim();
-  if(st!=null){L=L.filter(r=>r.stage===st);lbl+=` na etapa ${STAGES[st].name}`}
-  const sum=L.reduce((a,r)=>a+r.val,0);
-  let h=`<p>${L.length?`<b>${pl(L.length,"solicitação","solicitações")}</b>`:"Nenhuma solicitação"} ${lbl||(stt==="Concluída"?"concluída":"em andamento")}${L.length?`, somando <b>${money(sum)}</b>`:""}.</p>`;
-  if(st==null&&!stt&&!sc.lbl)h=`<p>Há <b>${pl(REQS.length,"solicitação","solicitações")}</b> no Hub: ${L.length} em andamento, somando <b>${money(sum)}</b>, e ${REQS.length-L.length} concluídas.</p>`;
-  if(L.length&&st==null&&!stt){h+=`<ul>`+STAGES.map((s,i)=>{const x=L.filter(r=>r.stage===i);return x.length?`<li>${s.name}: ${pl(x.length,"solicitação","solicitações")}, ${money(x.reduce((a,r)=>a+r.val,0))}</li>`:""}).join("")+`</ul>`}
-  else if(L.length<=6&&L.length)h+=rl(L,r=>`${esc(r.sup)}, ${money(r.val)}`);
-  return mk(h+goBtn("Ver na lista de solicitações",'data-go="solicitacoes" data-close'));
-}
-function aSupplier(name){
-  const ag=supAgg().find(x=>x.nome===name);if(!ag)return null;CHAT.ctx.sup=name;CHAT.ctx.rc=null;
-  const at=REQS.filter(r=>r.sup===name&&active(r));
-  let h=`<p><b>${esc(name)}</b> (${esc(ag.cat)}). Cadastro: <b>${esc(ag.cad)}</b>. Prazo de pagamento: ${esc(ag.prazo)}.</p><p>${pl(ag.rcs,"solicitação ativa","solicitações ativas")}, ${money(ag.aberto)} em aberto. Atenção: ${lc(esc(ag.atencao))}.</p>`;
-  if(at.length)h+=rl(at,r=>`${STAGES[r.stage].name}, ${r.status.toLowerCase()}, ${money(r.val)}`);
-  h+=goBtn("Abrir a ficha do fornecedor",`data-sup="${esc(name)}"`);
-  const sh=shortSup(name);return mk(h,["Quanto há em aberto com "+sh+"?","Tem alguma atrasada de "+sh+"?","Quando é o próximo pagamento de "+sh+"?"]);
-}
-function aSupAttention(){
-  const L=supAgg().filter(x=>x.lvl!=="ok");
-  if(!L.length)return mk(`<p>Nenhum fornecedor precisa de atenção agora.</p>`);
-  return mk(`<p>${pl(L.length,"fornecedor precisa","fornecedores precisam")} de atenção:</p><ul>`+L.map(x=>`<li><button class="linkbtn" type="button" data-sup="${esc(x.nome)}">${esc(x.nome)}</button><br><span class="mut">${esc(x.atencao)}. ${pl(x.rcs,"solicitação ativa","solicitações ativas")}.</span></li>`).join("")+`</ul>`+goBtn("Abrir fornecedores",'data-go="fornecedores" data-close'));
-}
-function aSuppliersAll(){
-  const L=supAgg().sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR")),ok=L.filter(x=>x.cad==="Ativo").length,at=L.filter(x=>x.lvl!=="ok").length,com=L.filter(x=>x.rcs>0).length;
-  return mk(`<p>Há <b>${pl(L.length,"fornecedor cadastrado","fornecedores cadastrados")}</b> no Hub: ${ok} com cadastro ativo e ${L.length-ok} com cadastro inativo ou em renovação. ${pl(com,"tem solicitação ativa","têm solicitações ativas")} e ${pl(at,"precisa","precisam")} de atenção.</p><ul>`+L.map(x=>`<li><button class="linkbtn" type="button" data-sup="${esc(x.nome)}">${esc(x.nome)}</button><br><span class="mut">${esc(x.cat)}. ${pl(x.rcs,"solicitação ativa","solicitações ativas")}.</span></li>`).join("")+`</ul>`+goBtn("Abrir fornecedores",'data-go="fornecedores" data-close'),["Quais fornecedores precisam de atenção?","Quanto há em aberto por fornecedor?"]);
-}
-function aDocCount(){
-  const t={};DOCS.forEach(d=>{t[d.type]=(t[d.type]||0)+1});const m=missingDocs();
-  return mk(`<p>O Hub reúne <b>${pl(DOCS.length,"documento","documentos")}</b> de ${pl(REQS.length,"solicitação","solicitações")}. Por tipo:</p><ul>`+Object.keys(t).map(k=>`<li>${esc(k)}: ${t[k]}</li>`).join("")+`</ul><p>${pl(m.length,"documento ainda falta","documentos ainda faltam")} ser anexado${m.length===1?"":"s"}.</p>`+goBtn("Abrir documentos",'data-go="documentos" data-close'),["Quais documentos estão faltando?"]);
-}
-function aNF(){
-  const L=REQS.filter(r=>r.stage===2&&active(r));
-  if(!L.length)return mk(`<p>Nenhuma solicitação está aguardando nota fiscal.</p>`);
-  return mk(`<p>${pl(L.length,"solicitação está na etapa","solicitações estão na etapa")} de recebimento da nota:</p>`+rl(L,r=>r.nf?`NF ${esc(r.nf)} recebida. Falta criar a folha no SAP.`:`Aguardando a NF de ${esc(r.sup)} há ${days(r.inStage)}.`)+goBtn("Ver aguardando NF",'data-gov="pag:semnf"'));
-}
-function aMissingDocs(){
-  const m=missingDocs();
-  if(!m.length)return mk(`<p>Nenhum documento está faltando.</p>`);
-  return mk(`<p>${pl(m.length,"documento falta","documentos faltam")}:</p><ul>`+m.map(x=>`<li>${esc(x.doc)} de ${B(x.rc)}<br><span class="mut">Enviar no ${esc(x.onde)}. Quem envia: ${esc(x.quem)}. Parado há ${days(x.dias)}.</span></li>`).join("")+`</ul>`+goBtn("Abrir documentos faltando",'data-go="documentos" data-close'));
+  return mk(`<p>Você tem ${pl(t.length,"pendência aberta","pendências abertas")}, da mais urgente para a menos:</p><ul>`+t.slice(0,6).map(x=>`<li><b>${esc(x.title)}</b>, ${B(x.rc)} ${esc(byRc(x.rc).desc)}<br><span class="mut">${esc(x.text)}</span></li>`).join("")+`</ul>`+(t.length>6?`<p class="mut">E mais ${t.length-6}.</p>`:"")+goBtn("Abrir minhas pendências",'data-go="pendencias" data-close'));
 }
 function aRadar(){
   const rd=radar();
   if(!rd.length)return mk(`<p>O radar não encontrou riscos agora.</p>`);
-  return mk(`<p>O radar encontrou ${pl(rd.length,"ponto","pontos")} de atenção:</p><ul>`+rd.slice(0,5).map(x=>`<li><b>${esc(x.t)}</b><br><span class="mut">${esc(x.s)}</span></li>`).join("")+`</ul>`);
+  return mk(`<p>O radar encontrou ${pl(rd.length,"ponto","pontos")} de atenção:</p><ul>`+rd.map(x=>`<li><b>${esc(x.t)}</b><br><span class="mut">${esc(x.s)}</span></li>`).join("")+`</ul>`);
+}
+function aStageValues(){
+  const at=REQS.filter(active),done=REQS.filter(r=>!active(r));
+  let h=`<p><b>${pl(at.length,"solicitação em andamento","solicitações em andamento")}</b>, somando <b>${money(sumV(at))}</b>. Há também ${pl(done.length,"concluída","concluídas")}.</p><ul>`;
+  STAGES.forEach((s,i)=>{const x=at.filter(r=>r.stage===i);h+=`<li><b>${s.name}</b> (${s.sys}): ${x.length?pl(x.length,"solicitação","solicitações")+", "+money(sumV(x)):"nenhuma"}</li>`});
+  return mk(h+`</ul>`+goBtn("Ver na esteira",'data-go="solicitacoes" data-close'));
 }
 function aFavs(){
   const L=REQS.filter(r=>isFav(r.rc));
   if(!L.length)return mk(`<p>Você ainda não acompanha nenhuma solicitação. Marque a estrela em uma delas para ela aparecer aqui.</p>`);
   return mk(`<p>Você acompanha ${pl(L.length,"solicitação","solicitações")}:</p>`+rl(L,r=>`${STAGES[r.stage].name}, ${r.status.toLowerCase()}`));
 }
+
+/* ----- compras ----- */
+function aStuck(){
+  const L=REQS.filter(r=>active(r)&&r.inStage>=7).sort((a,b)=>b.inStage-a.inStage);
+  if(!L.length)return mk(`<p>Nenhuma solicitação está parada há 7 dias ou mais.</p>`);
+  return mk(`<p>${pl(L.length,"solicitação está parada","solicitações estão paradas")} há 7 dias ou mais:</p>`+rl(L,r=>`Há ${days(r.inStage)} em ${STAGES[r.stage].name}, com ${esc(r.owner.name)}. ${esc(r.next)}`)+goBtn("Ver todas as paradas",'data-gov="sol:paradas"'));
+}
+function aBig(){
+  const L=REQS.filter(r=>active(r)&&r.val>=100000).sort((a,b)=>b.val-a.val);
+  if(!L.length)return mk(`<p>Não há compras em aberto acima de R$ 100 mil.</p>`);
+  return mk(`<p>${pl(L.length,"compra em aberto passa","compras em aberto passam")} de R$ 100 mil, somando <b>${money(sumV(L))}</b>:</p>`+rl(L,r=>`${money(r.val)}. ${STAGES[r.stage].name}, com ${esc(r.owner.name)}.`));
+}
+function aStageList(i){
+  i=+i;const L=REQS.filter(r=>active(r)&&r.stage===i).sort((a,b)=>b.inStage-a.inStage);
+  if(!L.length)return mk(`<p>Nenhuma solicitação em andamento na etapa <b>${STAGES[i].name}</b>.</p>`);
+  return mk(`<p>${pl(L.length,"solicitação está","solicitações estão")} na etapa <b>${STAGES[i].name}</b> (${STAGES[i].sys}), somando ${money(sumV(L))}:</p>`+rl(L,r=>`${money(r.val)}. Com ${esc(r.owner.name)} há ${days(r.inStage)}.`)+goBtn("Ver na lista",`data-stage="${i}"`));
+}
+
+/* ----- fornecedores ----- */
+function aSuppliersAll(){
+  const L=supAgg().sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR")),ok=L.filter(x=>x.cad==="Ativo").length,at=L.filter(x=>x.lvl!=="ok").length,com=L.filter(x=>x.rcs>0).length;
+  return mk(`<p>Há <b>${pl(L.length,"fornecedor cadastrado","fornecedores cadastrados")}</b> no Hub: ${ok} com cadastro ativo e ${L.length-ok} inativo ou em renovação. ${pl(com,"tem solicitação ativa","têm solicitações ativas")} e ${pl(at,"precisa","precisam")} de atenção.</p><ul>`+L.map(x=>`<li><button class="linkbtn" type="button" data-sup="${esc(x.nome)}">${esc(x.nome)}</button><br><span class="mut">${esc(x.cat)}. ${pl(x.rcs,"solicitação ativa","solicitações ativas")}.</span></li>`).join("")+`</ul>`);
+}
+function aOpenBySupplier(){
+  const L=supAgg().filter(x=>x.aberto>0).sort((a,b)=>b.aberto-a.aberto),tot=L.reduce((t,x)=>t+x.aberto,0);
+  return mk(`<p>${pl(L.length,"fornecedor tem","fornecedores têm")} valor em aberto, num total de <b>${money(tot)}</b>:</p><ul>`+L.map(x=>`<li><button class="linkbtn" type="button" data-sup="${esc(x.nome)}">${esc(x.nome)}</button>: <b>${money(x.aberto)}</b><br><span class="mut">${pl(x.rcs,"solicitação","solicitações")} ainda não paga${x.rcs===1?"":"s"}.</span></li>`).join("")+`</ul><p class="mut" style="font-size:13.5px">Em aberto são as solicitações que ainda não tiveram o pagamento confirmado.</p>`);
+}
+function aSupplier(name){
+  const ag=supAgg().find(x=>x.nome===name);if(!ag)return mk(`<p>Não encontrei esse fornecedor.</p>`);
+  const at=REQS.filter(r=>r.sup===name&&active(r));
+  let h=`<p><b>${esc(name)}</b> (${esc(ag.cat)}). Cadastro: <b>${esc(ag.cad)}</b>. Prazo de pagamento: ${esc(ag.prazo)}.</p><p>${pl(ag.rcs,"solicitação ativa","solicitações ativas")}, ${money(ag.aberto)} em aberto. Atenção: ${esc(ag.atencao)}.</p>`;
+  if(at.length)h+=rl(at,r=>`${STAGES[r.stage].name}, ${r.status.toLowerCase()}, ${money(r.val)}`);
+  return mk(h+goBtn("Abrir a ficha do fornecedor",`data-sup="${esc(name)}"`));
+}
+function aSupOpen(name){
+  const at=REQS.filter(r=>r.sup===name&&active(r));
+  if(!at.length)return mk(`<p>Não há valor em aberto com <b>${esc(name)}</b>. Todas as solicitações dele foram concluídas.</p>`);
+  return mk(`<p>Em aberto com <b>${esc(name)}</b>: <b>${money(sumV(at))}</b>, em ${pl(at.length,"solicitação","solicitações")}:</p>`+rl(at,r=>`${money(r.val)}. ${STAGES[r.stage].name}.`)+goBtn("Abrir a ficha do fornecedor",`data-sup="${esc(name)}"`));
+}
+function aSupAttention(){
+  const L=supAgg().filter(x=>x.lvl!=="ok");
+  if(!L.length)return mk(`<p>Nenhum fornecedor precisa de atenção agora.</p>`);
+  return mk(`<p>${pl(L.length,"fornecedor precisa","fornecedores precisam")} de atenção:</p><ul>`+L.map(x=>`<li><button class="linkbtn" type="button" data-sup="${esc(x.nome)}">${esc(x.nome)}</button><br><span class="mut">${esc(x.atencao)}. ${pl(x.rcs,"solicitação ativa","solicitações ativas")}.</span></li>`).join("")+`</ul>`+goBtn("Abrir fornecedores",'data-go="fornecedores" data-close'));
+}
+function aSupInactive(){
+  const L=supAgg().filter(x=>x.cad!=="Ativo");
+  if(!L.length)return mk(`<p>Todos os fornecedores estão com cadastro ativo.</p>`);
+  return mk(`<p>${pl(L.length,"fornecedor está","fornecedores estão")} com cadastro inativo ou em renovação:</p><ul>`+L.map(x=>`<li><button class="linkbtn" type="button" data-sup="${esc(x.nome)}">${esc(x.nome)}</button>: <b>${esc(x.cad)}</b><br><span class="mut">${pl(x.rcs,"solicitação ativa","solicitações ativas")}.${x.cad.startsWith("Inativo")?" Novos pedidos serão recusados.":" Confirme com o Procurement antes de novos pedidos."}</span></li>`).join("")+`</ul>`);
+}
+function aSupNF(){
+  const L=REQS.filter(r=>active(r)&&r.stage===2&&!r.nf);
+  if(!L.length)return mk(`<p>Nenhum fornecedor está devendo nota fiscal agora.</p>`);
+  const g={};L.forEach(r=>{(g[r.sup]=g[r.sup]||[]).push(r)});
+  return mk(`<p>${pl(Object.keys(g).length,"fornecedor ainda não enviou","fornecedores ainda não enviaram")} a nota fiscal:</p><ul>`+Object.keys(g).map(n=>`<li><button class="linkbtn" type="button" data-sup="${esc(n)}">${esc(n)}</button><br><span class="mut">${g[n].map(r=>r.rc+" (há "+days(r.inStage)+", "+money(r.val)+")").join("; ")}</span></li>`).join("")+`</ul>`);
+}
+
+/* ----- notas fiscais ----- */
+function aNFWait(){
+  const L=REQS.filter(r=>active(r)&&r.stage===2&&!r.nf).sort((a,b)=>b.inStage-a.inStage);
+  if(!L.length)return mk(`<p>Nenhuma solicitação está aguardando nota fiscal.</p>`);
+  return mk(`<p>${pl(L.length,"solicitação aguarda","solicitações aguardam")} a nota fiscal do fornecedor:</p>`+rl(L,r=>`${esc(r.sup)} está devendo há ${days(r.inStage)}. ${money(r.val)}.`)+goBtn("Ver aguardando NF",'data-gov="pag:semnf"'));
+}
+function aNFLate(){
+  const L=REQS.filter(r=>active(r)&&r.stage===2&&!r.nf&&r.inStage>=7).sort((a,b)=>b.inStage-a.inStage);
+  if(!L.length)return mk(`<p>Nenhuma nota fiscal está atrasada. Nenhum fornecedor passou de 7 dias de espera.</p>`);
+  return mk(`<p>${pl(L.length,"nota fiscal está atrasada","notas fiscais estão atrasadas")} (mais de 7 dias de espera):</p>`+rl(L,r=>`${esc(r.sup)} está devendo há ${days(r.inStage)}.`));
+}
+function aNFNoSap(){
+  const L=REQS.filter(r=>active(r)&&r.nf&&!r.sap);
+  if(!L.length)return mk(`<p>Todas as notas fiscais recebidas já têm folha no SAP.</p>`);
+  return mk(`<p>${pl(L.length,"nota fiscal já chegou, mas ainda não tem","notas fiscais já chegaram, mas ainda não têm")} folha de pagamento no SAP:</p>`+rl(L,r=>`NF ${esc(r.nf)} de ${esc(r.sup)}. Parada há ${days(r.inStage)}. Quem cria: ${esc(r.owner.name)}.`));
+}
+function aNFRej(){
+  const L=REQS.filter(r=>r.rej&&r.nf);
+  if(!L.length)return mk(`<p>Nenhuma nota fiscal gerou recusa agora.</p>`);
+  return mk(`<p>${pl(L.length,"nota fiscal gerou","notas fiscais geraram")} recusa:</p>`+rl(L,r=>`NF ${esc(r.nf)}. ${esc(r.rej.motivo)}`));
+}
+function aNFStatus(nf){
+  const r=REQS.find(x=>x.nf===nf);if(!r)return mk(`<p>Não encontrei essa nota fiscal.</p>`);
+  const e=eta(r);
+  let h=`<p><b>NF ${esc(nf)}</b> pertence a ${B(r.rc)}, ${esc(r.desc)}, de ${esc(r.sup)}. Valor: ${money(r.val)}.</p><p>Folha SAP: ${r.sap?esc(r.sap):"ainda não criada"}. Etapa: <b>${STAGES[r.stage].name}</b>, situação <b>${r.status}</b>.</p>`;
+  if(r.rej)h+=`<p><b>Recusada:</b> ${esc(r.rej.motivo)}</p>`;
+  h+=`<p>Pagamento: ${e.kind==="est"?"estimado ":""}${lc(e.text)}.</p>`;
+  return mk(h+relRC(r,"status"));
+}
+
+/* ----- pagamentos ----- */
+function aPayWin(lo,hi,l){
+  const L=REQS.filter(r=>active(r)&&r.fc!=null&&r.fc>=lo&&r.fc<=hi).sort((a,b)=>a.fc-b.fc);
+  if(!L.length)return mk(`<p>Não há pagamentos programados no SAP ${l}.</p>`);
+  return mk(`<p>${pl(L.length,"pagamento programado","pagamentos programados")} ${l}, num total de <b>${money(sumV(L))}</b>:</p><ul>`+L.map(r=>`<li><b>${payDate(r).toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})}</b>, ${esc(r.sup)}, ${money(r.val)} (${B(r.rc)})</li>`).join("")+`</ul><p class="mut" style="font-size:13.5px">Fonte: previsão do SAP.</p>`+goBtn("Abrir a agenda",'data-go="agenda" data-close'));
+}
+function aAnalysis(){
+  const L=REQS.filter(r=>r.stage===3&&!r.rej).sort((a,b)=>(a.fc||99)-(b.fc||99));
+  if(!L.length)return mk(`<p>Nada está em análise no Financeiro agora.</p>`);
+  return mk(`<p>${pl(L.length,"solicitação está","solicitações estão")} em análise no Financeiro, somando ${money(sumV(L))}:</p>`+rl(L,r=>`${esc(r.sup)}, ${money(r.val)}. Há ${days(r.inStage)} com ${esc(r.owner.name)}. Pagamento: ${lc(eta(r).text)}.`));
+}
+function aNoDate(){
+  const L=REQS.filter(r=>active(r)&&r.fc==null&&r.stage>=1);
+  if(!L.length)return mk(`<p>Todas as solicitações em andamento já têm data de pagamento no SAP.</p>`);
+  return mk(`<p>${pl(L.length,"solicitação ainda não tem","solicitações ainda não têm")} data de pagamento no SAP. O Hub mostra uma estimativa:</p>`+rl(L,r=>`Pagamento estimado ${lc(eta(r).text)} (${lc(eta(r).conf)}). Etapa: ${STAGES[r.stage].name}.`,10));
+}
+function aPaid(){
+  const L=REQS.filter(r=>!active(r)).sort((a,b)=>a.upd-b.upd);
+  if(!L.length)return mk(`<p>Nenhum pagamento foi concluído ainda.</p>`);
+  return mk(`<p>${pl(L.length,"pagamento já foi feito","pagamentos já foram feitos")}, somando <b>${money(sumV(L))}</b>:</p>`+rl(L,r=>`${esc(r.sup)}, ${money(r.val)}. ${esc(eta(r).text)}.`));
+}
+
+/* ----- aprovações ----- */
+const aprWait=()=>aprBase().filter(x=>x.sit==="Aguardando aprovação").sort((a,b)=>b.inStage-a.inStage);
+function aApprovals(){
+  const L=aprWait();
+  if(!L.length)return mk(`<p>Nenhuma aprovação está aguardando agora.</p>`);
+  return mk(`<p>${pl(L.length,"aprovação aguardando","aprovações aguardando")}:</p>`+rl(L,r=>`Com ${esc(r.who)} (${esc(r.role)}) há ${days(r.inStage)}. ${money(r.val)}.`)+goBtn("Abrir aprovações",'data-gov="apr:aguardando"'));
+}
+function aApproversPending(){
+  const L=aprWait();
+  if(!L.length)return mk(`<p>Ninguém tem aprovações pendentes agora.</p>`);
+  const g={};L.forEach(r=>{(g[r.who]=g[r.who]||{role:r.role,rs:[]}).rs.push(r)});
+  const names=Object.keys(g).sort((a,b)=>Math.max(...g[b].rs.map(r=>r.inStage))-Math.max(...g[a].rs.map(r=>r.inStage)));
+  return mk(`<p>${pl(names.length,"pessoa tem","pessoas têm")} aprovações pendentes:</p><ul>`+names.map(n=>`<li><b>${esc(n)}</b> (${esc(g[n].role)}): ${pl(g[n].rs.length,"aprovação","aprovações")}, ${money(sumV(g[n].rs))}<br><span class="mut">${g[n].rs.map(r=>r.rc+" há "+days(r.inStage)).join("; ")}</span></li>`).join("")+`</ul>`);
+}
+function aDirector(){
+  const L=aprWait().filter(r=>/Diretoria/.test(r.role));
+  if(!L.length)return mk(`<p>Nenhuma aprovação está com a Diretoria agora.</p>`);
+  return mk(`<p>${pl(L.length,"solicitação aguarda","solicitações aguardam")} a Diretoria:</p>`+rl(L,r=>`${esc(r.who)} há ${days(r.inStage)}. ${money(r.val)}. Passou da alçada do gerente.`));
+}
+function aOldest(){
+  const r=aprWait()[0];
+  if(!r)return mk(`<p>Nenhuma aprovação está aguardando agora.</p>`);
+  return mk(`<p>A aprovação mais antiga é de ${B(r.rc)}, ${esc(r.desc)} (${money(r.val)}). Está com <b>${esc(r.who)}</b> (${esc(r.role)}) há <b>${days(r.inStage)}</b>.</p>`+relRC(r,"who"));
+}
 function aPerson(p){
   const L=REQS.filter(r=>active(r)&&r.owner.name===p);
-  if(!L.length)return mk(`<p>${esc(p)} não está com nenhuma solicitação ativa agora.</p>`);
-  return mk(`<p>${esc(p)} está com ${pl(L.length,"solicitação","solicitações")}:</p>`+rl(L,r=>`${STAGES[r.stage].name}, há ${days(r.inStage)}. ${money(r.val)}.`));
-}
-function aSummary(){
-  const at=REQS.filter(active),rj=REQS.filter(r=>r.rej),st=at.filter(r=>r.inStage>=7),t=openTasks(),w=REQS.filter(r=>active(r)&&r.fc!=null&&r.fc>=0&&r.fc<=7),rd=radar()[0];
-  return mk(`<p>Hoje o Hub mostra <b>${pl(at.length,"solicitação ativa","solicitações ativas")}</b>, somando ${money(at.reduce((a,r)=>a+r.val,0))}.</p><ul><li>${pl(rj.length,"recusada para corrigir","recusadas para corrigir")} (${money(rj.reduce((a,r)=>a+r.val,0))})</li><li>${pl(st.length,"parada há 7 dias ou mais","paradas há 7 dias ou mais")}</li><li>${pl(t.length,"pendência sua aberta","pendências suas abertas")}</li><li>${money(w.reduce((a,r)=>a+r.val,0))} a pagar nos próximos 7 dias, em ${pl(w.length,"pagamento","pagamentos")}</li></ul>`+(rd?`<p>Ponto principal do radar: <b>${esc(rd.t)}</b>.</p>`:""),["O que está atrasado e por quê?","O que preciso fazer hoje?"]);
-}
-function aGloss(g){return mk(`<p><b>${esc(g[0])}</b>: ${esc(g[1])}</p>`+(g[0]==="Alçada"?`<p class="mut">Na prática: pedidos acima da alçada do gerente passam também pela Diretoria.</p>`:""),["O que significa PO?","O que significa folha SAP?","O que é Procurement?"])}
-function aNav(k){const r=ROUTES.find(x=>x.id===k);return mk(`<p>Claro. Vou abrir <b>${esc(r.label)}</b>.</p>`+goBtn("Abrir "+r.label,`data-go="${k}" data-close`))}
-function aGreet(){return mk(`<p>Olá, Mariana! Eu respondo com os dados que estão nas telas do Hub: solicitações, aprovações, pagamentos, documentos e fornecedores.</p><p>Experimente perguntar pelo status de uma RC, o que está atrasado ou quando um pagamento será feito.</p>`)}
-function aHelp(){return mk(`<p>Eu consulto só os dados desta página. Posso responder, por exemplo:</p><ul><li>Status, responsável, pagamento e documentos de uma RC, PO, NF ou folha SAP</li><li>Por que uma solicitação foi recusada e como corrigir</li><li>O que está atrasado, aguardando aprovação ou sem nota fiscal</li><li>Pagamentos da semana, do mês ou de um fornecedor</li><li>Valores em aberto e contagens por etapa</li><li>Situação de um fornecedor</li><li>Significado de termos como alçada, PO e folha SAP</li></ul><p class="mut">O que não estiver nos dados, eu digo que não sei.</p>`)}
-const FALLBACK_STOP=new Set(["qual","quais","quem","como","esta","estao","onde","sobre","quero","saber","tenho","preciso","para","com","uma","uns","que","dos","das","nao","por","mais","menos","tem","ter","sao","foi","fui","vou","pode","posso","voce","solicitacao","solicitacoes","requisicao","pedido","pedidos","fornecedor","fornecedores","status","dados","informacao","informacoes"]);
-function aFallback(n){
-  const ws=n.split(" ").filter(w=>w.length>=4&&!FALLBACK_STOP.has(w));
-  const sc=REQS.map(r=>({r,s:ws.filter(w=>norm(r.desc+" "+r.sup).includes(w)).length})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
-  let h=`<p>Não encontrei essa informação nos dados desta página, então prefiro não responder no escuro.</p>`;
-  if(sc.length)h+=`<p>Você quis dizer alguma destas?</p>`+rl(sc.slice(0,3).map(x=>x.r),r=>esc(r.sup));
-  return mk(h+`<p class="mut">Tente perguntar pelo número de uma RC, PO ou NF, pelo nome de um fornecedor, ou use uma das sugestões abaixo.</p>`);
+  if(!L.length)return mk(`<p>${esc(p)} não está com nenhuma solicitação em andamento agora.</p>`);
+  return mk(`<p><b>${esc(p)}</b> está com ${pl(L.length,"solicitação","solicitações")}, somando ${money(sumV(L))}:</p>`+rl(L,r=>`${STAGES[r.stage].name}, há ${days(r.inStage)}. ${money(r.val)}.`));
 }
 
-/* ----- roteador de perguntas ----- */
-function reply(q){
-  const n=norm(q).replace(/[?!.,;:]+/g," ").replace(/\s+/g," ").trim(),e=ents(q),W=(...a)=>a.some(w=>n.includes(w));
-  if(/^(oi|ola|bom dia|boa tarde|boa noite|e ai|opa)( |$)/.test(n)&&n.split(" ").length<=4)return aGreet();
-  if(W("obrigad","valeu"))return mk("<p>Por nada! Se precisar de mais alguma coisa, é só perguntar.</p>");
-  if(/previsao do tempo|\bclima\b|\bchuva\b|futebol|\bpiada\b|\bnoticias?\b|\bdolar\b|horoscopo|receita de/.test(n))return aFallback(n);
-  if(e.missing)return mk(`<p>Não encontrei ${esc(e.missing)} nos dados desta página. Confira o número ou busque pelo nome do fornecedor.</p>`);
-  if(W("ajuda","o que voce faz","o que voce sabe","o que posso perguntar","como voce funciona")&&!e.rc)return aHelp();
-  const gl=glossFind(n);
-  if(gl&&W("o que e","o que significa","significa","quer dizer","o que sao","defina","explique"))return aGloss(gl);
-  const rt=routeFind(n);
-  if(rt&&W("abrir","abra","ir para","va para","me leve","mostrar a tela","mostre a tela","navegar","ver a tela","tela de"))return aNav(rt);
-  if(e.supAmb)return mk(`<p>Encontrei mais de um fornecedor com esse nome. Qual deles?</p>`,e.supAmb);
-  if(e.sup&&!e.rc&&W("cnpj","contato","telefone","endereco","e-mail","email")){const m=SUP[e.sup],sh=shortSup(e.sup);CHAT.ctx.sup=e.sup;CHAT.ctx.rc=null;return mk(`<p><b>${esc(e.sup)}</b>: CNPJ ${esc(m.cnpj)}. Contato: ${esc(m.contato)}.</p><p class="mut">Não tenho telefone, e-mail nem endereço deste fornecedor nos dados do Hub.</p>`,["Como está "+sh+"?","Quanto há em aberto com "+sh+"?"])}
-  const sub=W("por que","porque","motivo","recus","rejeit")?"rej":W("quem","responsavel","com quem")?"who":W("quando","previs","pagar","paga","pagamento","receber","data")?"pay":W("document","arquivo","anexo","falta")?"docs":W("o que fazer","proximo passo","corrigir","como resolver","o que preciso","o que devo")?"next":"status";
-  const pron=/\b(ela|dela|essa|dessa|mesma|nela)\b/.test(n)&&!/semana|mes|hoje|amanha/.test(n);
-  const shortFollow=n.split(" ").length<=5&&!W("todas","quais","quantas","quantos","quanto","proxim","semana","mes","fornecedores","atrasad","parad","resum","hoje","agora","tudo","amanha","pagamentos","aprovacoes","notas","documentos","recusadas","pendencias");
-  const rc=e.rc||(CHAT.ctx.rc&&(pron||(shortFollow&&sub!=="status"))&&!e.sup&&!e.person?CHAT.ctx.rc:null);
-  if(!rc&&pron&&!CHAT.ctx.rc&&sub!=="status")return mk("<p>De qual solicitação você está falando? Me diga o número da RC, PO ou NF.</p>");
-  if(rc){const r=byRc(rc);return {rej:aReject,who:aWho,pay:aPay,docs:aDocs,next:aNext,status:aStatus}[sub](r)}
-  const sc=e.sup?{f:r=>r.sup===e.sup,lbl:"do fornecedor "+e.sup}:e.person?{f:r=>(r.who||r.owner.name)===e.person||r.owner.name===e.person,lbl:"com "+e.person}:{f:()=>true,lbl:""};
-  if(W("resum","panorama","visao geral","como estou","como esta a minha"))return aSummary();
-  if(W("fornecedor")&&W("atencao","problema","risco","cadastro","renovac")&&!e.sup)return aSupAttention();
-  if(W("quantas","quantos")&&stageFrom(n)==null){
-    if(W("fornecedor")&&!e.sup)return aSuppliersAll();
-    if(W("document"))return aDocCount();
-    if(W("pendencia","tarefa"))return aTasks();
-    if(W("aprovac"))return aApprovals(sc);
-    if(W("pagamento"))return aPayments(sc,n);
-    if(/\bnfs?\b/.test(n)||W("nota fiscal","notas fiscais"))return aNF();
-  }
-  if(W("fornecedor")&&!e.sup&&W("existem","cadastrad","lista","todos os fornecedores","quais fornecedores","fornecedores temos","fornecedores tenho"))return aSuppliersAll();
-  if(W("atrasad","parad","demor","travad","gargalo"))return aStuck(sc);
-  if(W("recusad","recusa","rejeitad","corrigir"))return aRejected(sc);
-  if(W("pendencia","tarefa","preciso fazer","o que fazer","minha acao","urgente"))return aTasks();
-  if(W("aprovac","aprovar","aprovador"))return aApprovals(sc);
-  if(W("pagar","pagamento","previs","receber","vencer","vence","agenda"))return aPayments(sc,n);
-  if(/\bnfs?\b/.test(n)||W("nota fiscal","notas fiscais","sem nota"))return aNF();
-  if(W("document","anexo","faltando","falta anexar"))return aMissingDocs();
-  if(W("risco","alerta","radar","atencao"))return aRadar();
-  if(W("acompanhando","favorit","estrela"))return aFavs();
-  if(W("quantas","quantos","quanto","total","soma","em aberto","valor"))return aNumbers(sc,n);
-  if(e.sup)return aSupplier(e.sup);
-  if(e.person)return aPerson(e.person);
-  if(W("fornecedores"))return aSuppliersAll();
-  return aFallback(n);
+/* ----- documentos ----- */
+function aMissingDocs(){
+  const m=missingDocs();
+  if(!m.length)return mk(`<p>Nenhum documento está faltando.</p>`);
+  return mk(`<p>${pl(m.length,"documento falta","documentos faltam")}:</p><ul>`+m.map(x=>`<li>${esc(x.doc)} de ${B(x.rc)}<br><span class="mut">Enviar no ${esc(x.onde)}. Quem envia: ${esc(x.quem)}. Parado há ${days(x.dias)}.</span></li>`).join("")+`</ul>`+goBtn("Abrir documentos faltando",'data-go="documentos" data-close'));
+}
+function aDocCount(){
+  const t={};DOCS.forEach(d=>{t[d.type]=(t[d.type]||0)+1});const m=missingDocs();
+  return mk(`<p>O Hub reúne <b>${pl(DOCS.length,"documento","documentos")}</b> de ${pl(REQS.length,"solicitação","solicitações")}. Por tipo:</p><ul>`+Object.keys(t).map(k=>`<li>${esc(k)}: ${t[k]}</li>`).join("")+`</ul><p>${pl(m.length,"documento ainda falta","documentos ainda faltam")} ser anexado${m.length===1?"":"s"}.</p>`+goBtn("Abrir documentos",'data-go="documentos" data-close'));
 }
 
-/* ----- interface do chat ----- */
+/* ----- recusas e termos ----- */
+function aRejected(){
+  const L=REQS.filter(r=>r.rej);
+  if(!L.length)return mk(`<p>Nenhuma solicitação está recusada.</p>`);
+  return mk(`<p>${pl(L.length,"solicitação recusada","solicitações recusadas")}, somando <b>${money(sumV(L))}</b>:</p>`+rl(L,r=>`Recusada por ${esc(r.rej.byName)}. ${esc(r.rej.motivo)}`)+goBtn("Ver como corrigir",'data-go="recusas" data-close'));
+}
+function aReasons(){
+  const tot=REASON_STATS.reduce((t,x)=>t+x[1],0);
+  return mk(`<p>Nos últimos 90 dias houve <b>${tot} recusas</b>. Os motivos mais comuns:</p><ol>`+REASON_STATS.map(x=>`<li>${esc(x[0])}: <b>${x[1]}</b> (${Math.round(x[1]/tot*100)}%)</li>`).join("")+`</ol><p class="mut" style="font-size:13.5px">Dados de demonstração.</p>`+goBtn("Ver como corrigir cada um",'data-go="recusas" data-close'));
+}
+function aHow(id){
+  const p=PLAYBOOK.find(x=>x.id===id);if(!p)return mk(`<p>Não encontrei esse motivo.</p>`);
+  return mk(`<p><b>${esc(p.motivo)}</b></p><p class="mut">Costuma ser recusado na etapa ${STAGES[p.st].name}, por ${esc(p.quem)}. Corrija no ${esc(p.sys)}.</p><ol>${p.passos.map(x=>`<li>${esc(x)}</li>`).join("")}</ol><p class="mut">Prazo típico para resolver: ${p.prazo}.</p>`);
+}
+function aGloss(term){
+  const g=GLOSS.find(x=>x[0]===term);if(!g)return mk(`<p>Não encontrei esse termo.</p>`);
+  return mk(`<p><b>${esc(g[0])}</b>: ${esc(g[1])}</p>`+(g[0]==="Alçada"?`<p class="mut">Na prática: pedidos acima da alçada do gerente passam também pela Diretoria.</p>`:""));
+}
+
+/* ----- menu de perguntas ----- */
+const PEOPLE=(()=>{const m={};REQS.forEach(r=>{[r.owner].concat(r.ap.map(a=>({name:a.name,role:a.role})),r.rej?[{name:r.rej.byName,role:r.rej.byRole}]:[]).forEach(p=>{if(!SUP[p.name]&&!m[p.name])m[p.name]=p.role})});return Object.keys(m).sort().map(n=>({v:n,l:n+" ("+m[n]+")"}))})();
+const PARAMS={
+ rc:{label:"Escolha a solicitação",opts:()=>REQS.map(r=>({v:r.rc,l:r.rc+", "+r.desc}))},
+ rcrej:{label:"Escolha a solicitação recusada",opts:()=>REQS.filter(r=>r.rej).map(r=>({v:r.rc,l:r.rc+", "+r.desc}))},
+ sup:{label:"Escolha o fornecedor",opts:()=>Object.keys(SUP).sort((a,b)=>a.localeCompare(b,"pt-BR")).map(n=>({v:n,l:n}))},
+ nf:{label:"Escolha a nota fiscal",opts:()=>REQS.filter(r=>r.nf).map(r=>({v:r.nf,l:"NF "+r.nf+", "+r.sup}))},
+ pessoa:{label:"Escolha a pessoa",opts:()=>PEOPLE},
+ etapa:{label:"Escolha a etapa",opts:()=>STAGES.map((s,i)=>({v:String(i),l:s.name}))},
+ termo:{label:"Escolha o termo",opts:()=>GLOSS.map(g=>({v:g[0],l:g[0]}))},
+ motivo:{label:"Escolha o motivo de recusa",opts:()=>PLAYBOOK.map(p=>({v:p.id,l:p.motivo}))}
+};
+const QA=[
+ {id:"geral",label:"Visão geral",qs:[
+  {id:"resumo",t:"Resumo da minha semana",fn:aSummary},
+  {id:"hoje",t:"O que preciso fazer hoje?",fn:aTasks},
+  {id:"radar",t:"Quais riscos o radar encontrou?",fn:aRadar},
+  {id:"etapas",t:"Quantas solicitações há em cada etapa?",fn:aStageValues},
+  {id:"acomp",t:"Quais solicitações eu acompanho?",fn:aFavs}]},
+ {id:"compras",label:"Compras",qs:[
+  {id:"status",t:"Qual o status de uma solicitação?",p:"rc",fn:a=>aStatus(byRc(a))},
+  {id:"who",t:"Quem está com uma solicitação?",p:"rc",fn:a=>aWho(byRc(a))},
+  {id:"next",t:"Qual o próximo passo de uma solicitação?",p:"rc",fn:a=>aNext(byRc(a))},
+  {id:"parada",t:"O que está parado há 7 dias ou mais?",fn:aStuck},
+  {id:"grandes",t:"Quais compras acima de R$ 100 mil estão em aberto?",fn:aBig},
+  {id:"etapa",t:"Quais solicitações estão em uma etapa?",p:"etapa",fn:aStageList}]},
+ {id:"fornecedores",label:"Fornecedores",qs:[
+  {id:"fornTotal",t:"Quantos fornecedores existem?",fn:aSuppliersAll},
+  {id:"fornAberto",t:"Quanto há em aberto por fornecedor?",fn:aOpenBySupplier},
+  {id:"fornFicha",t:"Qual a situação de um fornecedor?",p:"sup",fn:aSupplier},
+  {id:"fornUm",t:"Quanto há em aberto com um fornecedor?",p:"sup",fn:aSupOpen},
+  {id:"fornAtencao",t:"Quais fornecedores precisam de atenção?",fn:aSupAttention},
+  {id:"fornCad",t:"Quais fornecedores estão com cadastro inativo ou em renovação?",fn:aSupInactive},
+  {id:"fornNF",t:"Quais fornecedores ainda não enviaram a NF?",fn:aSupNF}]},
+ {id:"nf",label:"Notas fiscais",qs:[
+  {id:"nfEspera",t:"Quais solicitações aguardam a nota fiscal?",fn:aNFWait},
+  {id:"nfAtraso",t:"Quais notas fiscais estão atrasadas?",fn:aNFLate},
+  {id:"nfSemSap",t:"Quais NFs ainda não têm folha SAP?",fn:aNFNoSap},
+  {id:"nfRec",t:"Quais NFs causaram recusa?",fn:aNFRej},
+  {id:"nfUma",t:"Qual a situação de uma NF?",p:"nf",fn:aNFStatus}]},
+ {id:"pagamentos",label:"Pagamentos",qs:[
+  {id:"p7",t:"Quanto vou pagar nos próximos 7 dias?",fn:()=>aPayWin(0,7,"nos próximos 7 dias")},
+  {id:"p14",t:"Quanto vou pagar nos próximos 14 dias?",fn:()=>aPayWin(0,14,"nos próximos 14 dias")},
+  {id:"p30",t:"Quanto vou pagar nos próximos 30 dias?",fn:()=>aPayWin(0,30,"nos próximos 30 dias")},
+  {id:"pay",t:"Quando uma solicitação será paga?",p:"rc",fn:a=>aPay(byRc(a))},
+  {id:"analise",t:"O que está em análise no Financeiro?",fn:aAnalysis},
+  {id:"semdata",t:"Quais pagamentos ainda não têm data no SAP?",fn:aNoDate},
+  {id:"pagos",t:"Quais pagamentos já foram feitos?",fn:aPaid}]},
+ {id:"aprovacoes",label:"Aprovações",qs:[
+  {id:"aprPend",t:"Quais aprovações estão pendentes?",fn:aApprovals},
+  {id:"aprQuem",t:"Quem tem aprovações pendentes?",fn:aApproversPending},
+  {id:"aprDir",t:"O que está aguardando a Diretoria?",fn:aDirector},
+  {id:"aprAntiga",t:"Qual a aprovação mais antiga?",fn:aOldest},
+  {id:"pessoa",t:"O que está com uma pessoa?",p:"pessoa",fn:aPerson}]},
+ {id:"documentos",label:"Documentos",qs:[
+  {id:"docFalta",t:"Quais documentos estão faltando?",fn:aMissingDocs},
+  {id:"docTotal",t:"Quantos documentos existem?",fn:aDocCount},
+  {id:"docs",t:"Quais documentos tem uma solicitação?",p:"rc",fn:a=>aDocs(byRc(a))}]},
+ {id:"recusas",label:"Recusas",qs:[
+  {id:"recLista",t:"Quais solicitações foram recusadas?",fn:aRejected},
+  {id:"rej",t:"Por que uma solicitação foi recusada?",p:"rcrej",fn:a=>aReject(byRc(a))},
+  {id:"recMotivos",t:"Quais são os motivos de recusa mais comuns?",fn:aReasons},
+  {id:"recComo",t:"Como corrigir um motivo de recusa?",p:"motivo",fn:aHow}]},
+ {id:"termos",label:"Termos",qs:[
+  {id:"termo",t:"O que significa um termo do processo?",p:"termo",fn:aGloss}]}
+];
+const QMAP={};QA.forEach(c=>c.qs.forEach(q=>{QMAP[q.id]=q}));
+const argLabel=(q,a)=>{const o=PARAMS[q.p].opts().find(x=>x.v===a);return o?o.l:a};
+
+/* ----- interface ----- */
 function renderChat(){
   const log=document.getElementById("chatLog");if(!log)return;
-  log.innerHTML=CHAT.msgs.map(m=>`<div class="msg ${m.r}">${m.h}</div>`).join("")+(CHAT.typing?'<div class="msg b mut" aria-hidden="true">Digitando…</div>':"");
+  log.innerHTML=CHAT.msgs.map(m=>`<div class="msg ${m.r}">${m.h}</div>`).join("")+(CHAT.typing?'<div class="msg b mut" aria-hidden="true">Buscando nos dados…</div>':"");
   log.scrollTop=log.scrollHeight;
-  const last=[...CHAT.msgs].reverse().find(m=>m.r==="b"),chips=(last&&last.chips)||DEFAULT_CHIPS;
-  document.getElementById("chatSugg").innerHTML=chips.map(c=>`<button type="button" data-chatq="${esc(c)}">${esc(c)}</button>`).join("");
+}
+function renderChatMenu(){
+  const cb=document.getElementById("catBar"),ql=document.getElementById("qList");if(!cb)return;
+  cb.innerHTML=QA.map(c=>`<button type="button" class="catb${CHAT.cat===c.id?" on":""}" data-cat="${c.id}" role="tab" aria-selected="${CHAT.cat===c.id}">${c.label}</button>`).join("");
+  const c=QA.find(x=>x.id===CHAT.cat)||QA[0];
+  ql.innerHTML=c.qs.map(q=>`<button type="button" class="qb" data-q="${q.id}"><span>${esc(q.t)}</span>${q.p?"<em>escolher</em>":""}</button>`).join("");
 }
 function openChat(trigger,preset){
-  if(!CHAT.msgs.length){const g=aGreet();CHAT.msgs.push({r:"b",h:g.h,chips:g.chips})}
-  openPanel(`<header class="ph2"><div class="hd"><span class="code">Assistente</span><h2 id="panel-title">Pergunte ao Hub</h2><div class="sline"><span class="mut">Responde só com os dados desta página.</span></div></div><button class="icon-btn" type="button" data-chatclear aria-label="Limpar conversa" title="Limpar conversa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>${closeBtn}</header>
+  if(!CHAT.msgs.length)CHAT.msgs.push({r:"b",h:`<p>Olá, Mariana! Escolha uma pergunta no menu abaixo.</p><p class="mut">As respostas vêm só dos dados que estão nas telas do Hub e são calculadas na hora. Algumas perguntas pedem que você escolha uma RC, um fornecedor ou uma NF.</p>`});
+  openPanel(`<header class="ph2"><div class="hd"><span class="code">Assistente</span><h2 id="panel-title">Pergunte ao Hub</h2><div class="sline"><span class="mut">Perguntas prontas, sem inteligência artificial externa.</span></div></div><button class="icon-btn" type="button" data-chatclear aria-label="Limpar conversa" title="Limpar conversa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>${closeBtn}</header>
   <div class="body chatlog" id="chatLog" role="log" aria-live="polite"></div>
-  <div class="chatfoot"><div class="chips2" id="chatSugg"></div><div id="chatForm"><label class="sr" for="chatIn">Sua pergunta</label><input id="chatIn" class="txt" type="text" placeholder="Pergunte sobre uma RC, fornecedor ou pagamento"><button class="btn" type="button" data-chatsend>Enviar</button></div><p class="chatnote">Este assistente funciona com regras próprias, sem inteligência artificial externa. Ele só conhece o que aparece nas telas do Hub.</p></div>`,trigger,"#chatIn");
-  curPanel=null;renderChat();
-  if(preset)chatSend(preset);
+  <div class="chatfoot"><div class="catbar" id="catBar" role="tablist" aria-label="Assuntos"></div><div class="qlist" id="qList"></div></div>`,trigger,".catb.on");
+  curPanel=null;renderChat();renderChatMenu();
+  if(preset)askQ(preset.id,preset.arg);
 }
-function chatSend(text){
-  text=text.trim();if(!text)return;
-  CHAT.msgs.push({r:"u",h:esc(text)});CHAT.typing=true;renderChat();
-  setTimeout(()=>{
-    CHAT.typing=false;let out;
-    try{out=reply(text)}catch(err){out=mk("<p>Não consegui processar essa pergunta. Tente reformular.</p>")}
-    CHAT.msgs.push({r:"b",h:out.h,chips:out.chips});renderChat();
-  },260);
+function reply(q,fn,arg){
+  CHAT.typing=true;renderChat();
+  setTimeout(()=>{CHAT.typing=false;let out;try{out=fn(arg)}catch(err){out=mk("<p>Não consegui montar essa resposta. Tente outra pergunta.</p>")}CHAT.msgs.push({r:"b",h:out.h});renderChat()},200);
+}
+function askQ(id,arg){
+  const q=QMAP[id];if(!q)return;
+  CHAT.msgs.push({r:"u",h:esc(q.t+(q.p&&arg!=null?": "+argLabel(q,arg):""))});
+  reply(q,q.fn,arg);
+}
+function pickQ(id){
+  const q=QMAP[id],p=PARAMS[q.p],n=++CHAT.pickN;
+  CHAT.msgs.push({r:"u",h:esc(q.t)});
+  CHAT.msgs.push({r:"b",h:`<p>${p.label}:</p><div class="pick"><select id="pick-${n}" aria-label="${p.label}">${p.opts().map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join("")}</select><button class="btn sm" type="button" data-pickgo="${id}|${n}">Ver resposta</button></div>`});
+  renderChat();
+  const s=document.getElementById("pick-"+n);if(s)s.focus();
 }
 
 /* =============== Favoritos, toast, exportações =============== */
@@ -1708,7 +1790,7 @@ document.getElementById("fab").addEventListener("click",e=>openChat(e.currentTar
 if(/Mac|iPhone|iPad/.test(navigator.platform||""))document.getElementById("kbdHint").textContent="⌘ K";
 
 /* =============== Eventos =============== */
-const SEL="[data-open],[data-rowopen],[data-doc],[data-sup],[data-fav],[data-nudge],[data-go],[data-stage],[data-journey],[data-sort],[data-mode],[data-view],[data-more],[data-clear],[data-act],[data-close],[data-export],[data-ptab],[data-guide],[data-savenote],[data-delnote],[data-month],[data-day],[data-help],[data-dosearch],[data-chatsend],[data-chat],[data-chatq],[data-chatclear],[data-gov],[data-copydraft],[data-regnudge],[data-weekly],[data-dossier]";
+const SEL="[data-open],[data-rowopen],[data-doc],[data-sup],[data-fav],[data-nudge],[data-go],[data-stage],[data-journey],[data-sort],[data-mode],[data-view],[data-more],[data-clear],[data-act],[data-close],[data-export],[data-ptab],[data-guide],[data-savenote],[data-delnote],[data-month],[data-day],[data-help],[data-dosearch],[data-chat],[data-chatclear],[data-q],[data-qa],[data-pickgo],[data-cat],[data-gov],[data-copydraft],[data-regnudge],[data-weekly],[data-dossier]";
 document.addEventListener("click",e=>{
   const t=e.target.closest(SEL);if(!t)return;
   const g=a=>t.getAttribute(a),has=a=>t.hasAttribute(a),inPanel=panel.contains(t);
@@ -1720,10 +1802,12 @@ document.addEventListener("click",e=>{
   if(has("data-nudge")){const rcs=g("data-nudge").split(",").filter(rc=>!nudgedToday(rc));if(!rcs.length){toast("Você já cobrou hoje.");return}openNudge(rcs,inPanel?null:t);return}
   if(has("data-regnudge")){nudge(g("data-regnudge"));closePanel();refresh();return}
   if(has("data-dosearch")){runSearch(t.closest("[data-search]"));return}
-  if(has("data-chatsend")){runChat();return}
-  if(has("data-chat")){openChat(inPanel?null:t,g("data-chat"));return}
-  if(has("data-chatq")){chatSend(g("data-chatq"));const i=document.getElementById("chatIn");if(i)i.focus();return}
-  if(has("data-chatclear")){CHAT.msgs=[];CHAT.ctx={rc:null,sup:null};openChat(null);return}
+  if(has("data-chat")){const [qid,arg]=g("data-chat").split("|");openChat(inPanel?null:t,{id:qid,arg});return}
+  if(has("data-chatclear")){CHAT.msgs=[];openChat(null);return}
+  if(has("data-cat")){CHAT.cat=g("data-cat");renderChatMenu();const b=document.querySelector('[data-cat="'+CHAT.cat+'"]');if(b)b.focus();return}
+  if(has("data-q")){const q=QMAP[g("data-q")];if(q.p)pickQ(q.id);else askQ(q.id);return}
+  if(has("data-qa")){const [qid,arg]=g("data-qa").split("|");askQ(qid,arg);return}
+  if(has("data-pickgo")){const [qid,n]=g("data-pickgo").split("|"),sel=document.getElementById("pick-"+n);if(sel)askQ(qid,sel.value);return}
   if(has("data-gov")){const [id,v]=g("data-gov").split(":");state[id].view=v;state[id].q="";state[id].f={};closePanel();go(FILLERS(id));return}
   if(has("data-copydraft")){const ta=document.getElementById("ndBody");copyText((document.getElementById("ndSub").value?"Assunto: "+document.getElementById("ndSub").value+"\n\n":"")+ta.value,ta);return}
   if(has("data-guide")){const id=g("data-guide");closePanel();go("recusas");setTimeout(()=>{const d=document.getElementById("pb-"+id);if(d){d.open=true;d.scrollIntoView({block:"center"})}},60);return}
@@ -1751,11 +1835,9 @@ function runSearch(box){
   if(!box)return;const id=box.getAttribute("data-search"),v=box.querySelector("input").value;state[id].q=v;
   if(id==="home")homeResults();else if(id==="rec")PAGES.recusas.render();else PAGES[FILLERS(id)].fill();
 }
-function runChat(){const i=document.getElementById("chatIn");if(!i)return;const v=i.value;i.value="";chatSend(v);i.focus()}
 document.addEventListener("keydown",e=>{
   if(e.key!=="Enter"||e.isComposing)return;
   const t=e.target;if(!t||t.tagName!=="INPUT")return;
-  if(t.id==="chatIn"){e.preventDefault();runChat();return}
   const box=t.closest("[data-search]");if(box){e.preventDefault();runSearch(box)}
 });
 document.addEventListener("change",e=>{
