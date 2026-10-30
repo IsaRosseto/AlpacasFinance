@@ -91,7 +91,7 @@ nav#nav .badge{margin-left:auto;margin-right:10px;background:var(--orange);color
 body.collapsed{--railw:76px}
 body.collapsed nav#nav .lbl,body.collapsed nav#nav .badge,body.collapsed nav#nav .grp{display:none}
 body.collapsed nav#nav a{justify-content:center;padding:12px 0}
-main{flex:1;min-width:0;padding:36px clamp(18px,4vw,56px) 72px;max-width:1360px}
+main{flex:1;min-width:0;padding:32px clamp(16px,4vw,56px) 72px;max-width:1240px}
 .scrim{position:fixed;inset:0;background:rgba(6,20,32,.55);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:70}
 .scrim.on{opacity:1;visibility:visible}
 footer{background:var(--surface);border-top:1px solid var(--rule);padding:10px 20px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -195,7 +195,7 @@ tr[class*="k-"] td:first-child{box-shadow:inset 4px 0 0 var(--c)}
 td .main{display:block;font-weight:600;color:var(--ink);background:none;border:0;padding:0;text-align:left;font-size:15px;line-height:1.35}
 td button.main:hover{color:var(--brand-ink);text-decoration:underline;text-underline-offset:3px}
 td .sub{display:block;font-size:13.5px;color:var(--muted);margin-top:2px}
-td .sub2{display:flex;gap:12px;font-size:13.5px;color:var(--muted);margin-top:2px;flex-wrap:wrap}
+td .sub2{display:flex;gap:0 12px;font-size:13.5px;color:var(--muted);margin-top:2px;flex-wrap:wrap}
 td.num,th.num .th{text-align:right;justify-content:flex-end}
 .empty{padding:44px 22px;text-align:center;color:var(--muted)}
 .empty strong{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
@@ -435,12 +435,12 @@ textarea{min-height:100px}
 .acts2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .pick{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .pick select{flex:1 1 220px;min-width:0;height:36px;border:1px solid var(--rule-strong);border-radius:8px;background:var(--surface);padding:0 8px}
-.chatfoot{border-top:1px solid var(--rule);background:var(--surface-2);display:flex;flex-direction:column;max-height:46%;min-height:0}
+.chatfoot{border-top:1px solid var(--rule);background:var(--surface-2);display:flex;flex-direction:column;min-height:0}
 .catbar{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px 8px}
 .catb{border:1px solid var(--rule-strong);background:var(--surface);border-radius:8px;padding:5px 11px;font-size:14px;font-weight:500}
 .catb:hover{border-color:var(--brand);background:var(--hover)}
 .catb.on{background:var(--rail);border-color:var(--rail);color:#fff;font-weight:600}
-.qlist{overflow:auto;display:grid;gap:6px;padding:4px 16px 14px}
+.qlist{overflow:auto;display:grid;gap:6px;padding:4px 16px 14px;max-height:min(36vh,320px)}
 .qb{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:1px solid var(--rule);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:14.5px;font-weight:500}
 .qb:hover{border-color:var(--brand);background:var(--hover)}
 .qb em{flex:none;font-style:normal;font-size:12.5px;font-weight:600;color:var(--brand-ink);background:var(--brand-tint);padding:1px 8px;border-radius:6px}
@@ -475,9 +475,8 @@ html[data-theme="dark"] .fb-img{background-image:var(--logo-dark)}
 @keyframes wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
 @keyframes rowin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes fall{0%{opacity:1;transform:translateY(-8px) rotate(0)}100%{opacity:0;transform:translateY(78px) rotate(240deg)}}
-@keyframes peekup{from{transform:translateY(32px)}to{transform:none}}
 @keyframes dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
-.brow{position:relative;display:flex;align-items:flex-end;gap:12px;max-width:100%}
+.brow{position:relative;display:flex;align-items:flex-start;gap:12px;max-width:100%}
 .brow.fresh{animation:rowin .3s ease-out}
 .brow .msg.b{min-width:0;max-width:calc(100% - 58px)}
 .msg.think{display:flex;align-items:center;color:var(--muted)}
@@ -492,9 +491,129 @@ html[data-theme="dark"] .fb-img{background-image:var(--logo-dark)}
 .confetti{position:absolute;left:56px;right:0;top:-6px;height:0;pointer-events:none}
 .confetti i{position:absolute;top:0;left:var(--x);width:9px;height:9px;background:var(--c);clip-path:polygon(50% 0,100% 100%,0 100%);opacity:0;animation:fall 1.5s var(--d) ease-out 1}
 .chatfoot{position:relative}
-.peek{position:absolute;right:26px;top:-31px;width:50px;height:32px;overflow:hidden;pointer-events:none;animation:peekup .7s .4s cubic-bezier(.2,1.4,.4,1) both}
-.peek .hd-img{position:absolute;left:0;top:0;width:50px;height:57px;background-size:100% auto;background-position:top center}
 .chathead{align-items:flex-start}
+
+/* ---------- Assistente: menu recolhível e animações ---------- */
+.menubar{display:flex;align-items:center;gap:10px;padding:10px 16px 10px;min-width:0}
+.mtoggle{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px 0 10px;border:1px solid var(--rule-strong);border-radius:10px;background:var(--surface);font-weight:600;font-size:14px;flex:none;transition:background .15s,border-color .15s,transform .1s}
+.mtoggle:hover{border-color:var(--brand);background:var(--hover)}
+.mtoggle:active{transform:scale(.97)}
+.mtoggle svg{width:18px;height:18px;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.chatfoot:not(.min) .mtoggle svg{transform:rotate(180deg)}
+.minchips{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none;opacity:0;visibility:hidden;transform:translateX(10px);transition:opacity .25s,transform .3s,visibility 0s .3s}
+.minchips::-webkit-scrollbar{display:none}
+.chatfoot.min .minchips{opacity:1;visibility:visible;transform:none;transition:opacity .3s .1s,transform .35s .1s,visibility 0s}
+.minchips .catb{flex:none;white-space:nowrap}
+.menuwrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .4s cubic-bezier(.2,.8,.2,1)}
+.chatfoot.min .menuwrap{grid-template-rows:0fr}
+.menuin{min-height:0;overflow:hidden;display:flex;flex-direction:column;opacity:1;visibility:visible;transition:opacity .3s .05s,visibility 0s}
+.chatfoot.min .menuin{opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s .4s}
+.catbar{padding-top:0}
+.catb{transition:background .15s,border-color .15s,color .15s,transform .1s}
+.catb:active,.qb:active{transform:scale(.97)}
+.qb{transition:background .15s,border-color .15s,transform .12s,box-shadow .15s}
+.qb:hover{transform:translateY(-1px);box-shadow:0 4px 12px -6px rgba(11,31,46,.35)}
+.qlist .qb{animation:qin .35s cubic-bezier(.2,.8,.2,1) both}
+.qlist .qb:nth-child(1){animation-delay:.02s}.qlist .qb:nth-child(2){animation-delay:.06s}.qlist .qb:nth-child(3){animation-delay:.10s}.qlist .qb:nth-child(4){animation-delay:.14s}.qlist .qb:nth-child(5){animation-delay:.18s}.qlist .qb:nth-child(6){animation-delay:.22s}.qlist .qb:nth-child(7){animation-delay:.26s}
+.msg.u.fresh{animation:uin .35s cubic-bezier(.2,.9,.3,1.25) both;transform-origin:100% 100%}
+.brow.fresh .msg.b{animation:bin .4s cubic-bezier(.2,.9,.3,1.2) both;transform-origin:0 100%}
+.brow.fresh .av2.ok,.brow.fresh .av2.money,.brow.fresh .av2.doc{animation:avin .5s cubic-bezier(.2,.9,.3,1.2) both}
+.brow.fresh .av2.alert{animation:avin .5s both,shake .6s .55s 1}
+.brow.fresh .av2.celebrate{animation:avin .5s both,hop .7s .55s 2}
+.brow.fresh .msg li,.brow.fresh .msg p,.brow.fresh .msg .acts2,.brow.fresh .msg .pick{animation:fadeup .45s ease both}
+.brow.fresh .msg li:nth-child(1),.brow.fresh .msg p:nth-child(1){animation-delay:.12s}
+.brow.fresh .msg li:nth-child(2),.brow.fresh .msg p:nth-child(2){animation-delay:.2s}
+.brow.fresh .msg li:nth-child(3),.brow.fresh .msg p:nth-child(3){animation-delay:.28s}
+.brow.fresh .msg li:nth-child(4),.brow.fresh .msg p:nth-child(4){animation-delay:.36s}
+.brow.fresh .msg li:nth-child(5){animation-delay:.44s}.brow.fresh .msg li:nth-child(6){animation-delay:.52s}.brow.fresh .msg li:nth-child(7){animation-delay:.6s}.brow.fresh .msg li:nth-child(n+8){animation-delay:.68s}
+.brow.fresh .msg .acts2,.brow.fresh .msg .pick{animation-delay:.5s}
+.msg.think{animation:breathe 1.6s ease-in-out infinite}
+.hello .fb-img{animation:wave 1.4s ease-in-out .3s 2,breathe 4s ease-in-out 3.3s infinite}
+.fab.attn::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;animation:ping 2.6s ease-out 1.2s infinite}
+.fab{transition:transform .2s,background .15s}
+.fab:hover{transform:translateY(-2px)}
+.fab:active{transform:scale(.96)}
+@keyframes qin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes uin{from{opacity:0;transform:translateX(22px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes bin{from{opacity:0;transform:translateX(-14px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes avin{0%{transform:scale(.4) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:none}}
+@keyframes fadeup{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+@keyframes nod{0%{transform:none}25%{transform:translateY(-9px) rotate(-5deg)}55%{transform:translateY(3px) rotate(3deg)}100%{transform:none}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(0,158,221,.55)}70%,100%{box-shadow:0 0 0 20px rgba(0,158,221,0)}}
+
+/* ---------- Interface mais limpa e responsiva ---------- */
+.find.compact .field,.find.compact .findrow .btn{height:44px}
+.find.compact + .chips{margin-top:16px}
+tbody tr.clk td:last-child{position:relative;padding-right:42px}
+tbody tr.clk td:last-child::after{content:"";position:absolute;right:18px;top:50%;width:8px;height:8px;border-right:2px solid var(--rule-strong);border-top:2px solid var(--rule-strong);transform:translateY(-50%) rotate(45deg);transition:transform .15s,border-color .15s}
+tbody tr.clk:hover td:last-child::after{border-color:var(--brand);transform:translateY(-50%) translateX(3px) rotate(45deg)}
+.cal .cnt{display:none;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--brand);color:var(--on-brand);font-size:12px;font-weight:700;margin-top:2px}
+.pn-h p b{color:var(--ink)}
+td.c-main{min-width:250px}
+.tip{display:flex;align-items:center;gap:12px;margin:12px 16px 0;padding:10px 12px;border:1px solid var(--rule);border-radius:12px;background:var(--surface)}
+.tip .av2{width:38px}
+.tip .tt{flex:1;min-width:0;font-size:14.5px;line-height:1.35}
+.tip .tt b{display:block;font-size:12.5px;font-weight:600;color:var(--brand-ink)}
+.tip .btn{flex:none}
+.tip.swap{animation:tipin .45s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes tipin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (max-height:720px){.qlist{max-height:22vh}.tip{padding:8px 10px}}
+@media (max-width:720px){
+  main{padding-top:22px}
+  .pagehead h1{font-size:30px}
+  .tw{border:0;background:transparent;overflow:visible}
+  .tw table{display:block;min-width:0}
+  .tw thead{display:none}
+  .tw tbody{display:grid;gap:12px}
+  .tw tr{display:block;position:relative;background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:10px 0}
+  .tw tr[class*="k-"]{border-left:4px solid var(--c)}
+  .tw tr[class*="k-"] td:first-child{box-shadow:none}
+  .tw td{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:6px 14px;border:0;text-align:right}
+  .tw td::before{content:attr(data-label);color:var(--muted);font-size:13.5px;text-align:left;flex:none}
+  .tw td.c-main{display:block;text-align:left;padding:2px 52px 6px 14px}
+  .tw td.c-main::before,.tw td.c-fav::before,.tw td.c-act::before{display:none}
+  .tw td.c-fav{position:absolute;top:4px;right:4px;padding:0;display:block}
+  .tw td.c-act{justify-content:flex-end}
+  .tw tbody tr:hover td{background:none}
+  .tw tr.clk td:last-child{padding-right:14px}
+  .tw tr.clk td:last-child::after{display:none}
+  .tw td .sub,.tw td .sub2{text-align:right;justify-content:flex-end}
+  .tw td.c-main .sub,.tw td.c-main .sub2{text-align:left;justify-content:flex-start}
+  .chips{gap:6px}
+  .chip{height:36px;padding:0 12px}
+  .toolbar{gap:10px}
+  .toolbar .seg{order:3}
+  .cal .day{min-height:54px;padding:4px;align-items:flex-start}
+  .cal .ev{display:none}
+  .cal .cnt{display:inline-grid}
+  .calwrap .cal{min-width:0}
+  .calwrap{padding-top:0}
+  .pn-h,.pn-b{padding-left:16px;padding-right:16px}
+  .tip .tt span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+}
+
+@media (max-width:720px){
+  .tw tbody{grid-template-columns:minmax(0,1fr)}
+  .tw tr{min-width:0}
+  .tw td .cv{min-width:0;flex:1;text-align:right}
+  .tw td.c-main .cv{flex:none;text-align:left}
+  .tw td.c-fav .cv,.tw td.c-act .cv{flex:none}
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-16px;margin-right:-16px;padding:2px 16px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip,.chips .linkbtn{flex:none;white-space:nowrap}
+  .chathead .sline{display:none}
+  .ph2{padding:14px 10px 12px 18px}
+  .ph2 h2{font-size:20px;margin:0}
+  .av2.big{width:44px;margin-right:10px}
+  .catbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:8px}
+  .catbar::-webkit-scrollbar{display:none}
+  .catb{flex:none;white-space:nowrap}
+  .qlist{max-height:24vh}
+  .panel .body{padding:16px 16px 20px}
+  .panel .body.chatlog{padding-bottom:24px}
+  .msg{font-size:15px}
+}
 @media (max-width:820px){.fab span:not(.av){display:none}.fab{padding:0 12px 0 12px}}
 
 @media (max-width:1100px){
@@ -549,7 +668,7 @@ html[data-theme="dark"] .fb-img{background-image:var(--logo-dark)}
     </div>
     <button class="cmdk" id="cmdBtn" type="button" aria-label="Buscar em tudo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-      <span>Buscar RC, PO, NF, fornecedor ou tela</span><kbd id="kbdHint">Ctrl K</kbd>
+      <span>Buscar RC, PO, NF ou fornecedor</span><kbd id="kbdHint">Ctrl K</kbd>
     </button>
     <div class="tools">
             <button class="icon-btn" id="themeBtn" type="button" aria-label="Alternar tema claro e escuro">
@@ -575,7 +694,7 @@ html[data-theme="dark"] .fb-img{background-image:var(--logo-dark)}
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<button class="fab" id="fab" type="button" aria-label="Abrir o assistente"><span class="av" aria-hidden="true"></span><span>Perguntar</span></button>
+<button class="fab attn" id="fab" type="button" aria-label="Abrir o assistente"><span class="av" aria-hidden="true"></span><span>Perguntar</span></button>
 
 <script>
 (function(){
@@ -862,7 +981,8 @@ const FILLERS=id=>({sol:"solicitacoes",apr:"aprovacoes",pag:"pagamentos",doc:"do
 
 const pageHead=(t,s,aside)=>`<div class="pagehead"><div><h1>${t}</h1><p>${s}</p></div>${aside||""}</div>`;
 function searchBox(id,title,hint,ph,val){
-  return `<div class="find" data-search="${id}" role="search"><h2>${title}</h2><p class="hint" id="h-${id}">${hint}</p>
+  const big=id==="home";
+  return `<div class="find${big?"":" compact"}" data-search="${id}" role="search">${big?`<h2>${title}</h2><p class="hint" id="h-${id}">${hint}</p>`:`<p class="sr" id="h-${id}">${title} ${hint}</p>`}
   <div class="findrow"><label class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span class="sr">${title}</span>
   <input type="search" name="q" autocomplete="off" aria-describedby="h-${id}" placeholder="${ph}" value="${esc(val)}"></label><button class="btn" type="button" data-dosearch>Buscar</button></div></div>`;
 }
@@ -883,7 +1003,7 @@ function seg(id,opts,cur){
 const exportBtn=id=>`<button class="btn sec sm dl" type="button" data-export="${id}">${ICON.dl}Exportar CSV</button>`;
 function dataTable(id,cols,rows,empty){
   if(!rows.length)return `<div class="tw"><div class="empty"><strong>${empty[0]}</strong>${empty[1]}</div></div>`;
-  const s=state[id].sort,col=cols.find(c=>c.k===s.k);
+  const s=state[id].sort,col=cols.find(c=>c.k===s.k),mainK=(cols.find(c=>c.k!=="fav")||{}).k;
   if(col&&col.sort!==false){
     const sv=col.sv||(r=>r[col.k]);
     rows=rows.slice().sort((a,b)=>{const x=sv(a),y=sv(b);const c=typeof x==="number"&&typeof y==="number"?x-y:String(x).localeCompare(String(y),"pt-BR");return c*s.d});
@@ -893,7 +1013,7 @@ function dataTable(id,cols,rows,empty){
     if(c.sort===false)return `<th scope="col" class="${cls}"><span class="plain">${c.label}</span></th>`;
     const on=s.k===c.k;
     return `<th scope="col" class="${cls}"${on?` aria-sort="${s.d===1?"ascending":"descending"}"`:""}><button class="th" type="button" data-sort="${id}|${c.k}">${c.label}<span class="car"></span></button></th>`;
-  }).join("")+`</tr></thead><tbody>`+rows.map(r=>`<tr class="${r._k?"k-"+r._k+" ":""}${r._open?"clk":""}"${r._open?` data-rowopen="${esc(r._open)}"`:""}>`+cols.map(c=>`<td class="${c.num?"num":""}">${c.render(r)}</td>`).join("")+`</tr>`).join("")+`</tbody></table></div>`;
+  }).join("")+`</tr></thead><tbody>`+rows.map(r=>`<tr class="${r._k?"k-"+r._k+" ":""}${r._open?"clk":""}"${r._open?` data-rowopen="${esc(r._open)}"`:""}>`+cols.map(c=>`<td class="${c.num?"num ":""}${c.k==="fav"?"c-fav ":""}${c.k===mainK?"c-main ":""}${c.k==="act"?"c-act":""}" data-label="${esc(String(c.label).replace(/<[^>]*>/g,""))}"><div class="cv">${c.render(r)}</div></td>`).join("")+`</tr>`).join("")+`</tbody></table></div>`;
 }
 const starBtn=rc=>`<button class="star" type="button" data-fav="${rc}" aria-pressed="${isFav(rc)}" aria-label="Acompanhar ${rc}" title="${isFav(rc)?"Deixar de acompanhar":"Acompanhar"}">${isFav(rc)?ICON.star:ICON.starO}</button>`;
 const reqCell=r=>`<button class="main" type="button" data-open="${r.rc}">${esc(r.desc)}</button><span class="sub2"><span>${r.rc}</span><span>${esc(r.sup)}</span></span>`;
@@ -926,15 +1046,12 @@ PAGES["visao-geral"]={render(){
   let o=`<section class="hero">${heroArt()}<h1>${sd}, Mariana</h1><p class="lead">Acompanhe solicitações da criação do pedido à confirmação do pagamento.</p><p class="day">${dt.charAt(0).toUpperCase()+dt.slice(1)}. Você tem ${pl(tasks.length,"pendência aberta","pendências abertas")} e ${pl(pay7.length,"pagamento previsto","pagamentos previstos")} nos próximos 7 dias.</p>`+
    searchBox("home","Encontre uma solicitação.","Busque por qualquer informação que você já tenha.","Número da RC, PO, fornecedor, NF ou folha SAP",state.home.q)+`</section>`;
   o+='<div id="homeResults"></div>';
-  o+=`<section class="sect" aria-labelledby="jt"><div class="sect-h"><div><h2 id="jt">Acompanhe uma solicitação do início ao fim.</h2><p>Veja etapas, responsáveis, documentos e pendências em uma única jornada.</p></div><button class="btn" type="button" data-journey>Ver jornada completa</button></div><div class="pn scrollx" style="padding-top:18px">${board(REQS,{max:4})}</div></section>`;
+  o+=`<section class="sect" aria-labelledby="jt"><div class="sect-h"><div><h2 id="jt">Acompanhe uma solicitação do início ao fim.</h2><p>Veja etapas, responsáveis, documentos e pendências em uma única jornada.</p></div><button class="btn" type="button" data-journey>Ver jornada completa</button></div><div class="pn scrollx" style="padding-top:18px">${board(REQS,{max:3})}</div></section>`;
   o+=`<div class="grid2 sect">
-   <section class="pn" aria-labelledby="g1"><div class="pn-h"><div><h2 id="g1">Precisa de você</h2><p>As próximas ações, da mais urgente para a menos.</p></div><button class="linkbtn" type="button" data-go="pendencias">Ver todas</button></div><div class="pn-b">${tasks.length?`<ul class="rows">`+tasks.slice(0,4).map(t=>`<li><button class="row" type="button" data-open="${t.rc}"><span class="t"><b>${esc(t.title)}</b><span>${esc(byRc(t.rc).desc)}</span></span><span class="when">${days(t.since)}<small>na etapa</small></span></button></li>`).join("")+`</ul>`:`<div class="hint-empty">Você não tem pendências abertas.</div>`}</div></section>
-   <section class="pn" aria-labelledby="g2"><div class="pn-h"><div><h2 id="g2">Radar</h2><p>Riscos que o Hub encontrou para você.</p></div></div><div class="pn-b">${rd.length?`<ul class="radar">`+rd.slice(0,4).map(x=>`<li class="${x.sev}"><span class="sv" aria-hidden="true"></span><div><span class="sr">${x.sev==="alta"?"Alerta alto: ":x.sev==="media"?"Atenção: ":"Informação: "}</span><b>${esc(x.t)}</b><p>${esc(x.s)}</p></div><button class="btn sec sm" type="button" ${x.attr}>${x.l}</button></li>`).join("")+`</ul>`:`<div class="hint-empty">Nenhum risco encontrado agora.</div>`}</div></section>
+   <section class="pn" aria-labelledby="g1"><div class="pn-h"><div><h2 id="g1">Precisa de você</h2><p>As próximas ações, da mais urgente para a menos.</p></div><button class="linkbtn" type="button" data-go="pendencias">Ver todas</button></div><div class="pn-b">${tasks.length?`<ul class="rows">`+tasks.slice(0,3).map(t=>`<li><button class="row" type="button" data-open="${t.rc}"><span class="t"><b>${esc(t.title)}</b><span>${esc(byRc(t.rc).desc)}</span></span><span class="when">${days(t.since)}<small>na etapa</small></span></button></li>`).join("")+`</ul>`:`<div class="hint-empty">Você não tem pendências abertas.</div>`}</div></section>
+   <section class="pn" aria-labelledby="g2"><div class="pn-h"><div><h2 id="g2">Radar</h2><p>Riscos que o Hub encontrou para você.</p></div></div><div class="pn-b">${rd.length?`<ul class="radar">`+rd.slice(0,3).map(x=>`<li class="${x.sev}"><span class="sv" aria-hidden="true"></span><div><span class="sr">${x.sev==="alta"?"Alerta alto: ":x.sev==="media"?"Atenção: ":"Informação: "}</span><b>${esc(x.t)}</b><p>${esc(x.s)}</p></div><button class="btn sec sm" type="button" ${x.attr}>${x.l}</button></li>`).join("")+`</ul>`:`<div class="hint-empty">Nenhum risco encontrado agora.</div>`}</div></section>
   </div>
-  <div class="grid2 sect">
-   <section class="pn" aria-labelledby="g3"><div class="pn-h"><div><h2 id="g3">Pagamentos nos próximos 7 dias</h2><p>Direto da previsão do SAP.</p></div><button class="linkbtn" type="button" data-go="agenda">Abrir agenda</button></div><div class="pn-b">${pay7.length?`<ul class="rows">`+pay7.map(r=>`<li><button class="row" type="button" data-open="${r.rc}"><span class="t"><b>${esc(r.sup)}</b><span>${esc(r.desc)}</span></span><span class="when">${payDate(r).toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})}<small>${money(r.val)}</small></span></button></li>`).join("")+`</ul>`:`<div class="hint-empty">Nenhum pagamento previsto para esta semana.</div>`}</div></section>
-   <section class="pn" aria-labelledby="g4"><div class="pn-h"><div><h2 id="g4">Acompanhando</h2><p>Solicitações que você marcou com estrela.</p></div></div><div class="pn-b">${fv.length?`<ul class="rows">`+fv.map(r=>`<li><button class="row k-${SK[r.status]}" type="button" data-open="${r.rc}"><span class="t"><b>${esc(r.desc)}</b><span>${STAGES[r.stage].name}</span></span>${stat(r.status)}</button></li>`).join("")+`</ul>`:`<div class="hint-empty">Marque a estrela em uma solicitação para acompanhá-la aqui.</div>`}</div></section>
-  </div>`;
+  ${fv.length?`<section class="pn sect" aria-labelledby="g4"><div class="pn-h"><div><h2 id="g4">Acompanhando</h2><p>Solicitações que você marcou com estrela.</p></div></div><div class="pn-b"><ul class="rows">`+fv.map(r=>`<li><button class="row k-${SK[r.status]}" type="button" data-open="${r.rc}"><span class="t"><b>${esc(r.desc)}</b><span>${STAGES[r.stage].name}</span></span>${stat(r.status)}</button></li>`).join("")+`</ul></div></section>`:""}`;
   view.innerHTML=o;
   if(state.home.q)homeResults();
 }};
@@ -1082,9 +1199,7 @@ function pagRows(){
 }
 PAGES.pagamentos={render(){
   const s=state.pag,counts={};PAG_VIEWS.forEach(v=>counts[v.k]=pagBase().filter(v.f).length);
-  const w=REQS.filter(PAG_VIEWS[1].f).reduce((a,r)=>a+r.val,0),an=REQS.filter(PAG_VIEWS[2].f).reduce((a,r)=>a+r.val,0),rj=REQS.filter(PAG_VIEWS[3].f).reduce((a,r)=>a+r.val,0),pd=REQS.filter(r=>r.status==="Concluída"&&r.upd<=30).reduce((a,r)=>a+r.val,0);
   view.innerHTML=pageHead("Pagamentos","Acompanhe seus faturamentos")+
-   `<div class="figs"><div class="fig"><span>Previstos nos próximos 7 dias</span><b>${money(w)}</b></div><div class="fig"><span>Em análise no Financeiro</span><b>${money(an)}</b></div><div class="fig"><span>Recusados, aguardando correção</span><b>${money(rj)}</b></div><div class="fig"><span>Pagos nos últimos 30 dias</span><b>${money(pd)}</b></div></div>`+
    searchBox("pag","Encontre um pagamento.","Busque por número da NF, PO, contrato, fornecedor ou folha SAP.","Número da NF, PO, contrato, fornecedor ou folha SAP",s.q)+
    quickBar("pag",PAG_VIEWS,counts)+
    filtersBar("pag",[{key:"stage",label:"Etapa",opts:stageOpts.slice(2)},{key:"sup",label:"Fornecedor",opts:supOpts},{key:"per",label:"Período",opts:perOpts}])+
@@ -1152,15 +1267,14 @@ PAGES.agenda={render(){
     const d=new Date(start);d.setDate(start.getDate()+i);
     if(i>=35&&d.getMonth()!==a.m)break;
     const k=ymd(d),it=map[k]||[],out=d.getMonth()!==a.m,today=k===ymd(TODAY);
-    cells+=`<button type="button" class="day${out?" out":""}${today?" today":""}${a.sel===k?" sel":""}" data-day="${k}" aria-label="${d.toLocaleDateString("pt-BR",{day:"numeric",month:"long"})}, ${pl(it.length,"pagamento","pagamentos")}"><span class="n">${d.getDate()}</span>`+it.slice(0,2).map(r=>`<span class="ev k-${active(r)?"and":"ok"}">${esc(r.sup.split(" ")[0])} ${moneyK(r.val).replace("R$ ","")}</span>`).join("")+(it.length>2?`<span class="mut" style="font-size:12.5px">+${it.length-2}</span>`:"")+`</button>`;
+    cells+=`<button type="button" class="day${out?" out":""}${today?" today":""}${a.sel===k?" sel":""}" data-day="${k}" aria-label="${d.toLocaleDateString("pt-BR",{day:"numeric",month:"long"})}, ${pl(it.length,"pagamento","pagamentos")}"><span class="n">${d.getDate()}</span>${it.length?`<span class="cnt">${it.length}</span>`:""}`+it.slice(0,2).map(r=>`<span class="ev k-${active(r)?"and":"ok"}">${esc(r.sup.split(" ")[0])} ${moneyK(r.val).replace("R$ ","")}</span>`).join("")+(it.length>2?`<span class="mut" style="font-size:12.5px">+${it.length-2}</span>`:"")+`</button>`;
   }
   const sel=a.sel&&map[a.sel]?map[a.sel]:null;
   const up=REQS.filter(r=>active(r)&&r.fc!=null&&r.fc>=0).sort((x,y)=>x.fc-y.fc);
   const side=sel||up;
   const stitle=sel?"Pagamentos em "+new Date(a.sel+"T12:00").toLocaleDateString("pt-BR",{day:"numeric",month:"long"}):"Próximos pagamentos";
   view.innerHTML=pageHead("Agenda de pagamentos","Veja quando cada solicitação deve ser paga, direto da previsão do SAP.")+
-   `<div class="figs"><div class="fig"><span>Previsto em ${mn}</span><b>${money(prev)}</b></div><div class="fig"><span>Já pago em ${mn}</span><b>${money(paid)}</b></div><div class="fig"><span>Pagamentos no mês</span><b>${monthItems.length}</b></div></div>
-   <div class="grid2 wide"><section class="pn" aria-label="Calendário"><div class="pn-h"><div class="calnav"><h2 id="calt">${title.charAt(0).toUpperCase()+title.slice(1)}</h2><button class="btn sec sm" type="button" data-month="-1" aria-label="Mês anterior">Anterior</button><button class="btn sec sm" type="button" data-month="0">Hoje</button><button class="btn sec sm" type="button" data-month="1" aria-label="Próximo mês">Próximo</button></div></div><div class="calwrap"><div class="cal" role="group" aria-labelledby="calt">${cells}</div></div></section>
+   `<div class="grid2 wide"><section class="pn" aria-label="Calendário"><div class="pn-h"><div class="calnav"><h2 id="calt">${title.charAt(0).toUpperCase()+title.slice(1)}</h2><button class="btn sec sm" type="button" data-month="-1" aria-label="Mês anterior">Anterior</button><button class="btn sec sm" type="button" data-month="0">Hoje</button><button class="btn sec sm" type="button" data-month="1" aria-label="Próximo mês">Próximo</button></div><p>Previsto em ${mn}: <b>${money(prev)}</b>. Já pago: <b>${money(paid)}</b>.</p></div><div class="calwrap"><div class="cal" role="group" aria-labelledby="calt">${cells}</div></div></section>
    <section class="pn" aria-label="${stitle}"><div class="pn-h"><h2>${stitle}</h2>${sel?`<button class="linkbtn" type="button" data-day="">Ver próximos</button>`:""}</div><div class="pn-b">${side.length?`<ul class="rows">`+side.map(r=>`<li><button class="row k-${active(r)?"and":"ok"}" type="button" data-open="${r.rc}"><span class="t"><b>${esc(r.sup)}</b><span>${esc(r.desc)}</span></span><span class="when">${payDate(r).toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})}<small>${money(r.val)}</small></span></button></li>`).join("")+`</ul>`:`<div class="hint-empty">Nenhum pagamento previsto.</div>`}</div></section></div>`;
 }};
 
@@ -1254,7 +1368,7 @@ PAGES.recusas={render(){
   const pbs=PLAYBOOK.filter(p=>!q||norm(p.motivo+" "+p.passos.join(" ")+" "+p.sys).includes(q));
   const gl=GLOSS.filter(g=>!q||norm(g[0]+" "+g[1]).includes(q));
   let o=pageHead("Recusas e guia","Entenda por que uma solicitação foi recusada e o que fazer para corrigir.");
-  o+=`<div class="find" data-search="rec" role="search"><h2>Procure um motivo ou um termo.</h2><p class="hint" id="h-rec">Por exemplo: NF, cadastro, alçada, folha SAP.</p><div class="findrow"><label class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span class="sr">Procure um motivo ou um termo</span><input type="search" name="q" autocomplete="off" aria-describedby="h-rec" placeholder="Motivo de recusa ou termo do glossário" value="${esc(state.rec.q)}"></label><button class="btn" type="button" data-dosearch>Buscar</button></div></div>`;
+  o+=`<div class="find compact" data-search="rec" role="search"><p class="sr" id="h-rec">Procure um motivo ou um termo. Por exemplo: NF, cadastro, alçada, folha SAP.</p><div class="findrow"><label class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span class="sr">Procure um motivo ou um termo</span><input type="search" name="q" autocomplete="off" aria-describedby="h-rec" placeholder="Motivo de recusa ou termo do glossário" value="${esc(state.rec.q)}"></label><button class="btn" type="button" data-dosearch>Buscar</button></div></div>`;
   o+=`<section class="pn sect"><div class="pn-h"><div><h2>Recusadas agora</h2><p>${pl(rj.length,"solicitação","solicitações")}</p></div></div><div class="pn-b">`+(rj.length?`<ul class="rows">`+rj.map(r=>`<li><button class="row k-rej" type="button" data-open="${r.rc}"><span class="t"><b>${esc(r.desc)}</b><span>${r.rc}. ${esc(r.rej.motivo)}</span></span>${stat("Recusada")}</button></li>`).join("")+`</ul>`:`<div class="hint-empty">Nenhuma solicitação recusada.</div>`)+`</div></section>`;
   o+=`<div class="grid2 wide sect"><section class="pn"><div class="pn-h"><div><h2>Motivos comuns e como corrigir</h2><p>${pl(pbs.length,"motivo","motivos")}</p></div></div><div class="pn-b">`+(pbs.length?pbs.map(p=>`<details class="rz" id="pb-${p.id}"><summary>${esc(p.motivo)}</summary><div class="in"><span class="mut">Costuma ser recusado na etapa ${STAGES[p.st].name}, por ${esc(p.quem)}. Corrija no ${esc(p.sys)}.</span><ol>${p.passos.map(x=>`<li>${esc(x)}</li>`).join("")}</ol><span class="mut">Prazo típico para resolver: ${p.prazo}.</span></div></details>`).join(""):`<div class="hint-empty">Nenhum motivo encontrado para “${esc(state.rec.q)}”.</div>`)+`</div></section>
   <section class="pn"><div class="pn-h"><h2>Glossário</h2></div><div class="pn-b">`+(gl.length?`<dl class="gl">`+gl.map(g=>`<dt>${esc(g[0])}</dt><dd>${esc(g[1])}</dd>`).join("")+`</dl>`:`<div class="hint-empty">Nenhum termo encontrado.</div>`)+`</div></section></div>`;
@@ -1394,7 +1508,7 @@ function copyText(t,ta){
 }
 
 /* =============== Assistente por menu (perguntas prontas, sem IA externa) =============== */
-const CHAT={msgs:[],cat:"geral",pickN:0,typing:false};
+const CHAT={msgs:[],cat:"geral",pickN:0,typing:false,open:true,asked:new Set()};
 const B=rc=>`<button class="linkbtn" type="button" data-open="${rc}">${rc}</button>`;
 const mk=h=>({h});
 const goBtn=(label,attr)=>`<div class="acts2"><button class="btn sec sm" type="button" ${attr}>${esc(label)}</button></div>`;
@@ -1737,27 +1851,60 @@ function confetti(){
 }
 function renderChat(){
   const log=document.getElementById("chatLog");if(!log)return;
+  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   let h=CHAT.msgs.map(m=>{
-    if(m.r==="u")return `<div class="msg u">${m.h}</div>`;
+    if(m.r==="u")return `<div class="msg u${m.fresh?" fresh":""}">${m.h}</div>`;
     if(m.r==="hello")return `<div class="hello"><span class="fb-img" role="img" aria-label="Alpaca de chinelos acenando"></span><div class="msg b">${m.h}</div></div>`;
     return `<div class="brow${m.fresh?" fresh":""}">${mascotHead(m.mood||"ok")}<div class="msg b">${m.h}</div>${m.fresh&&m.mood==="celebrate"?confetti():""}</div>`;
   }).join("");
-  if(CHAT.typing)h+=`<div class="brow">${mascotHead("think")}<div class="msg b think" aria-hidden="true">Buscando nos dados<span class="dots"><i></i><i></i><i></i></span></div></div>`;
+  if(CHAT.typing)h+=`<div class="brow fresh">${mascotHead("think")}<div class="msg b think" aria-hidden="true">Buscando nos dados<span class="dots"><i></i><i></i><i></i></span></div></div>`;
+  const freshBot=!CHAT.typing&&CHAT.msgs.some(m=>m.r==="b"&&m.fresh);
   log.innerHTML=h;CHAT.msgs.forEach(m=>{m.fresh=false});
-  log.scrollTop=log.scrollHeight;
+  let top=log.scrollHeight;
+  if(freshBot){const us=log.querySelectorAll(".msg.u"),l=us[us.length-1];if(l)top=Math.max(0,l.getBoundingClientRect().top-log.getBoundingClientRect().top+log.scrollTop-12)}
+  if(log.scrollTo)log.scrollTo({top,behavior:reduce?"auto":"smooth"});else log.scrollTop=top;
+}
+function tipsList(){
+  const t=[],rj=REQS.filter(r=>r.rej),nfl=REQS.filter(r=>active(r)&&r.stage===2&&!r.nf&&r.inStage>=7),old=aprWait()[0],p7=REQS.filter(r=>active(r)&&r.fc!=null&&r.fc>=0&&r.fc<=7),miss=missingDocs();
+  if(rj.length)t.push({id:"recLista",mood:"alert",btn:"Ver quais",text:pl(rj.length,"solicitação recusada precisa","solicitações recusadas precisam")+" da sua correção."});
+  if(nfl.length)t.push({id:"nfAtraso",mood:"alert",btn:"Ver",text:pl(nfl.length,"nota fiscal está atrasada","notas fiscais estão atrasadas")+". O pagamento só começa depois dela."});
+  if(old&&old.inStage>=5)t.push({id:"aprAntiga",mood:"alert",btn:"Ver",text:"A aprovação de "+old.rc+" está parada há "+days(old.inStage)+", com "+old.who+"."});
+  if(p7.length)t.push({id:"p7",mood:"money",btn:"Ver",text:money(sumV(p7))+" serão pagos nos próximos 7 dias."});
+  if(miss.length)t.push({id:"docFalta",mood:"doc",btn:"Ver",text:pl(miss.length,"documento falta","documentos faltam")+" ser anexado"+(miss.length===1?"":"s")+"."});
+  t.push({id:"resumo",mood:"ok",btn:"Ver resumo",text:"Quer um resumo da sua semana?"});
+  return t;
+}
+function renderTip(){
+  const el=document.getElementById("tip");if(!el)return;
+  const t=tipsList().find(x=>!CHAT.asked.has(x.id));
+  el.innerHTML=t?`${mascotHead(t.mood)}<div class="tt"><b>Dica da alpaca</b><span>${esc(t.text)}</span></div><button class="btn sm" type="button" data-tip="${t.id}">${t.btn}</button>`
+    :`${mascotHead("celebrate")}<div class="tt"><b>Dica da alpaca</b><span>Você já viu os pontos principais. Escolha outra pergunta no menu.</span></div>`;
+  el.classList.remove("swap");void el.offsetWidth;el.classList.add("swap");
+}
+function setMenu(open){
+  CHAT.open=open;
+  const f=document.getElementById("chatFoot");if(!f)return;
+  f.classList.toggle("min",!open);
+  const t=f.querySelector("[data-menutoggle]");
+  if(t){t.setAttribute("aria-expanded",open);t.querySelector("span").textContent=open?"Ocultar perguntas":"Mostrar perguntas"}
+  renderChatMenu();
 }
 function renderChatMenu(){
-  const cb=document.getElementById("catBar"),ql=document.getElementById("qList");if(!cb)return;
-  cb.innerHTML=QA.map(c=>`<button type="button" class="catb${CHAT.cat===c.id?" on":""}" data-cat="${c.id}" role="tab" aria-selected="${CHAT.cat===c.id}">${c.label}</button>`).join("");
+  const cb=document.getElementById("catBar"),ql=document.getElementById("qList"),mc=document.getElementById("minChips");if(!cb)return;
+  const chips=QA.map(c=>`<button type="button" class="catb${CHAT.cat===c.id?" on":""}" data-cat="${c.id}" role="tab" aria-selected="${CHAT.cat===c.id}">${c.label}</button>`).join("");
+  cb.innerHTML=chips;if(mc)mc.innerHTML=QA.map(c=>`<button type="button" class="catb" data-cat="${c.id}">${c.label}</button>`).join("");
   const c=QA.find(x=>x.id===CHAT.cat)||QA[0];
   ql.innerHTML=c.qs.map(q=>`<button type="button" class="qb" data-q="${q.id}"><span>${esc(q.t)}</span>${q.p?"<em>escolher</em>":""}</button>`).join("");
 }
 function openChat(trigger,preset){
+  const fab=document.getElementById("fab");if(fab)fab.classList.remove("attn");
   if(!CHAT.msgs.length)CHAT.msgs.push({r:"hello",h:`<p><b>Oi, Mariana!</b> Escolha uma pergunta no menu abaixo.</p><p class="mut">As respostas vêm só dos dados que estão nas telas do Hub e são calculadas na hora. Algumas perguntas pedem que você escolha uma RC, um fornecedor ou uma NF.</p>`});
   openPanel(`<header class="ph2 chathead">${mascotHead("ok","big")}<div class="hd"><span class="code">Assistente</span><h2 id="panel-title">Pergunte ao Hub</h2><div class="sline"><span class="mut">Perguntas prontas, sem inteligência artificial externa.</span></div></div><button class="icon-btn" type="button" data-chatclear aria-label="Limpar conversa" title="Limpar conversa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>${closeBtn}</header>
   <div class="body chatlog" id="chatLog" role="log" aria-live="polite"></div>
-  <div class="chatfoot"><span class="peek" aria-hidden="true"><span class="hd-img"></span></span><div class="catbar" id="catBar" role="tablist" aria-label="Assuntos"></div><div class="qlist" id="qList"></div></div>`,trigger,".catb.on");
-  curPanel=null;renderChat();renderChatMenu();
+  <div class="chatfoot${CHAT.open?"":" min"}" id="chatFoot"><div class="tip" id="tip"></div>
+   <div class="menubar"><button type="button" class="mtoggle" data-menutoggle aria-expanded="${CHAT.open}" aria-controls="menuIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>${CHAT.open?"Ocultar perguntas":"Mostrar perguntas"}</span></button><div class="minchips" id="minChips" aria-label="Assuntos"></div></div>
+   <div class="menuwrap"><div class="menuin" id="menuIn"><div class="catbar" id="catBar" role="tablist" aria-label="Assuntos"></div><div class="qlist" id="qList"></div></div></div></div>`,trigger,"[data-menutoggle]");
+  curPanel=null;renderChat();renderChatMenu();renderTip();
   if(preset)askQ(preset.id,preset.arg);
 }
 const MOODS={
@@ -1776,20 +1923,22 @@ function reply(q,fn,arg){
   setTimeout(()=>{
     CHAT.typing=false;let out;
     try{out=fn(arg)}catch(err){out=mk("<p>Não consegui montar essa resposta. Tente outra pergunta.</p>")}
-    CHAT.msgs.push({r:"b",h:out.h,mood:moodFor(q.id,out),fresh:true});renderChat();
-  },380);
+    CHAT.msgs.push({r:"b",h:out.h,mood:moodFor(q.id,out),fresh:true});renderChat();renderTip();
+  },320);
 }
 function askQ(id,arg){
   const q=QMAP[id];if(!q)return;
-  CHAT.msgs.push({r:"u",h:esc(q.t+(q.p&&arg!=null?": "+argLabel(q,arg):""))});
+  CHAT.asked.add(id);
+  CHAT.msgs.push({r:"u",fresh:true,h:esc(q.t+(q.p&&arg!=null?": "+argLabel(q,arg):""))});
+  setMenu(false);
   reply(q,q.fn,arg);
 }
 function pickQ(id){
   const q=QMAP[id],p=PARAMS[q.p],n=++CHAT.pickN;
-  CHAT.msgs.push({r:"u",h:esc(q.t)});
+  CHAT.msgs.push({r:"u",fresh:true,h:esc(q.t)});
   CHAT.msgs.push({r:"b",mood:"ok",fresh:true,h:`<p>${p.label}:</p><div class="pick"><select id="pick-${n}" aria-label="${p.label}">${p.opts().map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join("")}</select><button class="btn sm" type="button" data-pickgo="${id}|${n}">Ver resposta</button></div>`});
-  renderChat();
-  const s=document.getElementById("pick-"+n);if(s)s.focus();
+  setMenu(false);renderChat();
+  setTimeout(()=>{const s=document.getElementById("pick-"+n);if(s)s.focus({preventScroll:true})},60);
 }
 
 /* =============== Favoritos, toast, exportações =============== */
@@ -1877,7 +2026,7 @@ document.getElementById("fab").addEventListener("click",e=>openChat(e.currentTar
 if(/Mac|iPhone|iPad/.test(navigator.platform||""))document.getElementById("kbdHint").textContent="⌘ K";
 
 /* =============== Eventos =============== */
-const SEL="[data-open],[data-rowopen],[data-doc],[data-sup],[data-fav],[data-nudge],[data-go],[data-stage],[data-journey],[data-sort],[data-mode],[data-view],[data-more],[data-clear],[data-act],[data-close],[data-export],[data-ptab],[data-guide],[data-savenote],[data-delnote],[data-month],[data-day],[data-help],[data-dosearch],[data-chat],[data-chatclear],[data-q],[data-qa],[data-pickgo],[data-cat],[data-gov],[data-copydraft],[data-regnudge],[data-weekly],[data-dossier]";
+const SEL="[data-open],[data-rowopen],[data-doc],[data-sup],[data-fav],[data-nudge],[data-go],[data-stage],[data-journey],[data-sort],[data-mode],[data-view],[data-more],[data-clear],[data-act],[data-close],[data-export],[data-ptab],[data-guide],[data-savenote],[data-delnote],[data-month],[data-day],[data-help],[data-dosearch],[data-chat],[data-chatclear],[data-q],[data-qa],[data-pickgo],[data-cat],[data-menutoggle],[data-tip],[data-gov],[data-copydraft],[data-regnudge],[data-weekly],[data-dossier]";
 document.addEventListener("click",e=>{
   const t=e.target.closest(SEL);if(!t)return;
   const g=a=>t.getAttribute(a),has=a=>t.hasAttribute(a),inPanel=panel.contains(t);
@@ -1891,7 +2040,9 @@ document.addEventListener("click",e=>{
   if(has("data-dosearch")){runSearch(t.closest("[data-search]"));return}
   if(has("data-chat")){const [qid,arg]=g("data-chat").split("|");openChat(inPanel?null:t,{id:qid,arg});return}
   if(has("data-chatclear")){CHAT.msgs=[];openChat(null);return}
-  if(has("data-cat")){CHAT.cat=g("data-cat");renderChatMenu();const b=document.querySelector('[data-cat="'+CHAT.cat+'"]');if(b)b.focus();return}
+  if(has("data-cat")){CHAT.cat=g("data-cat");if(!CHAT.open)setMenu(true);else renderChatMenu();const b=document.querySelector('#catBar [data-cat="'+CHAT.cat+'"]');if(b&&CHAT.open)b.focus({preventScroll:true});return}
+  if(has("data-menutoggle")){setMenu(!CHAT.open);return}
+  if(has("data-tip")){askQ(g("data-tip"));return}
   if(has("data-q")){const q=QMAP[g("data-q")];if(q.p)pickQ(q.id);else askQ(q.id);return}
   if(has("data-qa")){const [qid,arg]=g("data-qa").split("|");askQ(qid,arg);return}
   if(has("data-pickgo")){const [qid,n]=g("data-pickgo").split("|"),sel=document.getElementById("pick-"+n);if(sel)askQ(qid,sel.value);return}
